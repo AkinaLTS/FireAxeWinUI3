@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\AddonProblemListWindow.axaml -->
+<host:HostedPage xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.AddonProblemListWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:views="using:FireAxe.Views.Controls" xmlns:r="using:FireAxe.Resources" Title="{x:Bind r:Texts.ProblemList, Mode=OneTime}">
+    <Grid Padding="{StaticResource NativePagePadding}" RowSpacing="16" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.ProblemList, Mode=OneTime}" />
+        <Grid x:Name="root" Padding="0" RowSpacing="8" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TabView x:Name="problemTabs" IsAddTabButtonVisible="False" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="5" Visibility="{Binding AddonRoot.ProblemCount, Converter={StaticResource NotEmptyToVisibilityConverter}, Mode=OneWay}">
+                        <FontIcon Glyph="" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                        <TextBlock Text="{Binding AddonRoot.ProblemCount, Mode=OneWay}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5" Visibility="{Binding AddonRoot.ProblemCount, Converter={StaticResource ZeroToVisibilityConverter}, Mode=OneWay}">
+                        <FontIcon Glyph="" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                        <TextBlock Text="{x:Bind r:Texts.NoProblemFound, Mode=OneTime}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind r:Texts.Checking, Mode=OneTime}" VerticalAlignment="Center" Visibility="{Binding AddonRoot.CheckTask, Converter={StaticResource NullToVisibilityConverter}, Mode=OneWay}" />
+                    <Button Content="{x:Bind r:Texts.Check, Mode=OneTime}" Click="OnCheckClick" />
+                </StackPanel>
+            </Grid>
+            <Border Grid.Row="1" Style="{StaticResource NativeCardStyle}">
+                <Grid>
+                    <Grid x:Name="problemsPanel" Visibility="Visible">
+                        <ListView ItemsSource="{Binding ProblemViewModels}" SelectionMode="None" IsItemClickEnabled="False" ItemContainerStyle="{StaticResource NativeListItemStyle}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander HorizontalContentAlignment="Stretch" IsExpanded="False" HorizontalAlignment="Stretch">
+                                        <Expander.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding AddonViewModels.Count}" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Expander.Header>
+                                        <ItemsControl ItemsSource="{Binding AddonViewModels}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <views:AddonRefView />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Expander>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <TextBlock Text="{x:Bind r:Texts.Empty, Mode=OneTime}" Margin="15" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="{Binding ProblemViewModels.Count, Converter={StaticResource ZeroToVisibilityConverter}, Mode=OneWay}" />
+                    </Grid>
+                    <Grid x:Name="addonsPanel" Visibility="Collapsed">
+                        <ListView ItemsSource="{Binding ProblematicAddonViewModels}" SelectionMode="None" IsItemClickEnabled="False" ItemContainerStyle="{StaticResource NativeListItemStyle}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <views:AddonRefView />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <TextBlock Text="{x:Bind r:Texts.Empty, Mode=OneTime}" Margin="15" HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="{Binding ProblematicAddonViewModels.Count, Converter={StaticResource ZeroToVisibilityConverter}, Mode=OneWay}" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</host:HostedPage>

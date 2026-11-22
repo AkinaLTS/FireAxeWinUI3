@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\RefAddonNodeSectionView.axaml
+     DataContext: RefAddonNodeViewModel (set by AddonNodeView).
+     Differences: DockPanel -> Grid (Auto/* columns); the "empty" hint and the reference view are two
+     mutually exclusive elements driven by AddonRefView's own DataContext, exactly like the Alt bindings
+     ($self.DataContext IsNull / IsNotNull); <SelectableTextBlock> -> TextBlock IsTextSelectionEnabled. -->
+<UserControl
+    x:Class="FireAxe.Views.RefAddonNodeSectionView"
+    x:Name="root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:FireAxe.Views.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:r="using:FireAxe.Resources"
+    mc:Ignorable="d">
+
+    <StackPanel Orientation="Vertical">
+        <TextBlock
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Style="{StaticResource Heading1TextStyle}"
+            Text="{x:Bind r:Texts.Reference, Mode=OneTime}" />
+        <Border Height="10" />
+
+        <!--  source  -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Text="{x:Bind r:Texts.SourceColon, Mode=OneTime}" />
+
+            <StackPanel
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{x:Bind r:Texts.Empty, Mode=OneTime}"
+                    Visibility="{Binding SourceViewModel, Converter={StaticResource NullToVisibilityConverter}}" />
+                <controls:AddonRefView
+                    x:Name="sourceRefView"
+                    VerticalAlignment="Center"
+                    DataContext="{Binding SourceViewModel}"
+                    Visibility="{Binding DataContext.SourceViewModel, ElementName=root, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=notnull}" />
+                <Border Width="10" />
+                <Button
+                    x:Name="setSourceButton"
+                    VerticalAlignment="Center"
+                    Click="OnSetSourceButtonClick"
+                    Content="{x:Bind r:Texts.Set, Mode=OneTime}" />
+            </StackPanel>
+        </Grid>
+
+        <Border Height="10" />
+
+        <!--  sync tags  -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Text="{x:Bind r:Texts.SyncTags, Mode=OneTime}" />
+            <CheckBox
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                IsChecked="{Binding RefAddon.IsTagsSyncEnabled, Mode=TwoWay}" />
+        </Grid>
+
+        <Border Height="10" />
+
+        <!--  sync dependencies  -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Text="{x:Bind r:Texts.SyncDependencies, Mode=OneTime}" />
+            <CheckBox
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                IsChecked="{Binding RefAddon.IsDependenciesSyncEnabled, Mode=TwoWay}" />
+        </Grid>
+    </StackPanel>
+</UserControl>

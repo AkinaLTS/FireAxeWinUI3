@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<host:HostedPage xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.AddonNodeCustomizeImageWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:r="using:FireAxe.Resources"
+    Title="{x:Bind r:Texts.CustomizePreviewImage, Mode=OneTime}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel Padding="{StaticResource NativePagePadding}" Spacing="16">
+            <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.CustomizePreviewImage, Mode=OneTime}" />
+            <Border Style="{StaticResource NativeCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBox Header="{x:Bind r:Texts.ImagePathColon, Mode=OneTime}" Text="{x:Bind ViewModel.CustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button HorizontalAlignment="Right" Content="{x:Bind r:Texts.Select, Mode=OneTime}" Command="{x:Bind ViewModel.SelectCustomImagePathCommand, Mode=OneTime}" />
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:Texts.AlternativeCustomizeAddonPreviewImageNote, Mode=OneTime}" />
+        </StackPanel>
+    </ScrollViewer>
+</host:HostedPage>

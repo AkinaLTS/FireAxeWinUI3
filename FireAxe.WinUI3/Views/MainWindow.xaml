@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="FireAxe.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FireAxe.Views" xmlns:r="using:FireAxe.Resources" Title="FireAxeWinUI3">
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Left" Modifiers="Menu" Invoked="OnBackKeyboardAcceleratorInvoked" />
+        </Grid.KeyboardAccelerators>
+        <Grid.Resources>
+            <!-- Hosted pages inherit a transparent canvas so the window backdrop remains visible. -->
+            <ResourceDictionary>
+                <ResourceDictionary.ThemeDictionaries>
+                    <ResourceDictionary x:Key="Default">
+                        <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    </ResourceDictionary>
+                    <ResourceDictionary x:Key="Light">
+                        <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    </ResourceDictionary>
+                    <ResourceDictionary x:Key="HighContrast">
+                        <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource SystemColorWindowColor}" />
+                    </ResourceDictionary>
+                </ResourceDictionary.ThemeDictionaries>
+            </ResourceDictionary>
+        </Grid.Resources>
+        <NavigationView x:Name="MainNavigation" PaneDisplayMode="Auto" OpenPaneLength="224"
+            CompactModeThresholdWidth="760" ExpandedModeThresholdWidth="1200"
+            BackRequested="OnHostBackRequested" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" IsTitleBarAutoPaddingEnabled="False"
+            SelectionChanged="OnNavigationSelectionChanged" ItemInvoked="OnNavigationItemInvoked">
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="LibraryNavigationItem" Tag="library" Content="{x:Bind r:NativeUiTexts.Library, Mode=OneTime}" Icon="Library" IsSelected="True" />
+                <NavigationViewItem Tag="tools" Content="{x:Bind r:Texts.Tools, Mode=OneTime}" Icon="Repair" />
+                <NavigationViewItem Tag="downloads" Content="{x:Bind r:Texts.DownloadList, Mode=OneTime}" Icon="Download" />
+            </NavigationView.MenuItems>
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Tag="settings" Content="{x:Bind r:Texts.Settings, Mode=OneTime}" Icon="Setting" />
+                <NavigationViewItem Tag="help" Content="{x:Bind r:Texts.Help, Mode=OneTime}" Icon="Help" />
+            </NavigationView.FooterMenuItems>
+            <!-- Keep each workspace mounted: switching pages must not rebuild VMs, scan or lose selection/scroll. -->
+            <Grid><ContentControl x:Name="SecondaryHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Visibility="Collapsed"/><Grid x:Name="PrimaryPages" Margin="24,16,24,24">
+                <Grid x:Name="LibraryPage" RowSpacing="12">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <StackPanel Spacing="4">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:NativeUiTexts.Library, Mode=OneTime}" />
+                        <TextBlock Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.LibraryDescription, Mode=OneTime}" />
+                        <TextBlock Text="{x:Bind ViewModel.AddonRoot.DirectoryPath, Mode=OneWay}" TextTrimming="CharacterEllipsis" IsTextSelectionEnabled="True" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <CommandBar Grid.Row="1" HorizontalContentAlignment="Left" DefaultLabelPosition="Right" IsDynamicOverflowEnabled="True" Background="Transparent">
+                        <AppBarButton Icon="OpenFile" Label="{x:Bind r:Texts.OpenDirectory, Mode=OneTime}" Command="{x:Bind ViewModel.OpenDirectoryCommand, Mode=OneTime}" />
+                        <AppBarButton Icon="Import" Label="{x:Bind r:Texts.Import, Mode=OneTime}" Command="{x:Bind ViewModel.ImportCommand, Mode=OneTime}" />
+                        <AppBarButton Icon="Play" Label="{x:Bind r:Texts.RunGame, Mode=OneTime}" Command="{x:Bind ViewModel.RunGameCommand, Mode=OneTime}" />
+                        <AppBarButton Label="{x:Bind r:Texts.Operations, Mode=OneTime}" Icon="AllApps">
+                            <AppBarButton.Flyout><MenuFlyout>
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.PushCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.Push, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.PushTip, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.RunGameCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.RunGame, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.RunGameTip, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.CheckCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.Check, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.CheckAllTip, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.ClearCachesCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.ClearCaches, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.ClearAllCachesTip, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.RandomlySelectCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.RandomlySelect, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.RandomlySelectTip, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.RandomlySelectForSelectedItemsCommand, Mode=OneTime}"
+                    Text="{x:Bind local:XBind.WithSelectedItemsHint(r:Texts.RandomlySelect), Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.DeleteRedundantVpkFilesCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.DeleteRedundantVpkFiles, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.DeleteRedundantVpkFilesForSelectedItemsCommand, Mode=OneTime}"
+                    Text="{x:Bind local:XBind.WithSelectedItemsHint(r:Texts.DeleteRedundantVpkFiles), Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.ExportSelectedItemsAsAddonRootFile, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.ExportSelectedItemsAsAddonRootFile, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.DeleteAddonsWithMissingFilesCommand, Mode=OneTime}"
+                    Text="{x:Bind r:Texts.DeleteAddonsWithMissingFiles, Mode=OneTime}" />
+                <MenuFlyoutItem
+                    Command="{x:Bind ViewModel.DeleteAddonsWithMissingFilesForSelectedItemsCommand, Mode=OneTime}"
+                    Text="{x:Bind local:XBind.WithSelectedItemsHint(r:Texts.DeleteAddonsWithMissingFiles), Mode=OneTime}" />
+                                        </MenuFlyout></AppBarButton.Flyout>
+                        </AppBarButton>
+                        <CommandBar.SecondaryCommands>
+                            <AppBarButton Label="{x:Bind r:Texts.ImportAddonRootFile, Mode=OneTime}" Command="{x:Bind ViewModel.ImportAddonRootFileCommand, Mode=OneTime}" />
+                            <AppBarButton Label="{x:Bind r:Texts.CloseDirectory, Mode=OneTime}" Command="{x:Bind ViewModel.CloseDirectoryCommand, Mode=OneTime}" />
+                        </CommandBar.SecondaryCommands>
+                    </CommandBar>
+                    <Grid Grid.Row="2">
+                        <local:AddonNodeExplorerView x:Name="LibraryExplorer" DataContext="{x:Bind ViewModel.AddonNodeExplorerViewModel, Mode=OneWay}" Visibility="{x:Bind local:XBind.VisibleIfNotNull(ViewModel.AddonRoot), Mode=OneWay}" />
+                        <StackPanel MaxWidth="560" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Visibility="{x:Bind local:XBind.VisibleIf(ViewModel.IsEmptyDirectory), Mode=OneWay}">
+                            <SymbolIcon Symbol="Library" HorizontalAlignment="Center" />
+                            <TextBlock Text="{x:Bind r:Texts.OpenDirectoryNote, Mode=OneTime}" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource NativeSubtitleTextStyle}" />
+                            <Button HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}" Content="{x:Bind r:Texts.OpenDirectory, Mode=OneTime}" Command="{x:Bind ViewModel.OpenDirectoryCommand, Mode=OneTime}" />
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Visibility="{x:Bind local:XBind.VisibleIf(ViewModel.IsOpeningDirectory), Mode=OneWay}">
+                            <ProgressRing IsActive="{x:Bind ViewModel.IsOpeningDirectory, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind r:Texts.OpeningDirectory, Mode=OneTime}" Style="{StaticResource NativeSubtitleTextStyle}" />
+                        </StackPanel>
+                    </Grid>        <!-- ============================ status bar ============================ -->
+        <Grid Grid.Row="3" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Grid.Column="0"
+                Orientation="Horizontal"
+                Spacing="5">
+                <Button
+                    Command="{x:Bind ViewModel.CheckCommand, Mode=OneTime}"
+                    Content="{x:Bind r:Texts.Check, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.CheckAllTip, Mode=OneTime}" />
+
+                <!-- Check state. Wrapped in a panel that is only visible while a directory is open, so the
+                     stale values x:Bind keeps when AddonRoot becomes null can never show. -->
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="5"
+                    Visibility="{x:Bind local:XBind.VisibleIfNotNull(ViewModel.AddonRoot), Mode=OneWay}">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="5"
+                        Visibility="{x:Bind local:XBind.VisibleIfZero(ViewModel.AddonRoot.ProblemCount), Mode=OneWay}">
+                        <FontIcon
+                            VerticalAlignment="Center"
+                            FontSize="14"
+                            Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                            Glyph="&#xE73E;" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{x:Bind r:Texts.NoProblemFound, Mode=OneTime}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Text="{x:Bind r:Texts.Checking, Mode=OneTime}"
+                        Visibility="{x:Bind local:XBind.VisibleIfNotNull(ViewModel.AddonRoot.CheckTask), Mode=OneWay}" />
+
+                    <Button
+                        Background="Transparent"
+                        Command="{x:Bind ViewModel.OpenProblemListWindowCommand, Mode=OneTime}"
+                        Visibility="{x:Bind local:XBind.VisibleIfPositive(ViewModel.AddonRoot.ProblemCount), Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <FontIcon
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                Glyph="&#xE7BA;" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Text="{x:Bind local:XBind.ProblemsFound(ViewModel.AddonRoot.ProblemCount), Mode=OneWay}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel
+                Grid.Column="2"
+                Orientation="Horizontal"
+                Spacing="5">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{x:Bind local:XBind.LastPushedAt(ViewModel.LastPushDateTime), Mode=OneWay}"
+                    Visibility="{x:Bind local:XBind.VisibleIfNotNull(ViewModel.LastPushDateTime), Mode=OneWay}" />
+                <Button
+                    Command="{x:Bind ViewModel.PushCommand, Mode=OneTime}"
+                    ToolTipService.ToolTip="{x:Bind r:Texts.PushTip, Mode=OneTime}">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <FontIcon VerticalAlignment="Center" FontSize="14" Glyph="&#xE898;" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{x:Bind r:Texts.Push, Mode=OneTime}" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+                </Grid>
+                <ScrollViewer x:Name="ToolsPage" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                    <StackPanel HorizontalAlignment="Stretch" Spacing="12">
+                        <TextBlock Text="{x:Bind r:Texts.Tools, Mode=OneTime}" Style="{StaticResource NativePageTitleTextStyle}" />
+                        <TextBlock Text="{x:Bind r:NativeUiTexts.ToolsDescription, Mode=OneTime}" Style="{StaticResource NativeSubtitleTextStyle}" />
+                        <InfoBar IsOpen="{x:Bind ViewModel.IsEmptyDirectory, Mode=OneWay}" IsClosable="False" Severity="Informational" Message="{x:Bind r:NativeUiTexts.OpenLibraryForTools, Mode=OneTime}" />
+                        <TextBlock Margin="0,12,0,0" Text="{x:Bind r:NativeUiTexts.Inspection, Mode=OneTime}" Style="{StaticResource NativeSectionTitleTextStyle}" />
+                        <TextBlock Text="{x:Bind r:NativeUiTexts.Review, Mode=OneTime}" Style="{StaticResource NativeSubtitleTextStyle}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.ProblemList, Mode=OneTime}" Command="{x:Bind ViewModel.OpenProblemListWindowCommand, Mode=OneTime}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.VpkConflictList, Mode=OneTime}" Command="{x:Bind ViewModel.OpenVpkConflictListWindowCommand, Mode=OneTime}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.ReplacementOverview, Mode=OneTime}" Command="{x:Bind ViewModel.OpenReplacementOverviewWindowCommand, Mode=OneTime}" />
+<TextBlock Margin="0,16,0,0" Text="{x:Bind r:NativeUiTexts.Organize, Mode=OneTime}" Style="{StaticResource NativeSectionTitleTextStyle}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.TagManager, Mode=OneTime}" Command="{x:Bind ViewModel.OpenTagManagerWindowCommand, Mode=OneTime}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.AddonNameAutoSetter, Mode=OneTime}" Command="{x:Bind ViewModel.OpenAddonNameAutoSetterWindowCommand, Mode=OneTime}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.FileNameFixer, Mode=OneTime}" Command="{x:Bind ViewModel.OpenFileNameFixerWindowCommand, Mode=OneTime}" />
+<TextBlock Margin="0,16,0,0" Text="{x:Bind r:NativeUiTexts.CleanFiles, Mode=OneTime}" Style="{StaticResource NativeSectionTitleTextStyle}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.FileCleaner, Mode=OneTime}" Command="{x:Bind ViewModel.OpenFileCleanerWindowCommand, Mode=OneTime}" />
+<Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.ClearCaches, Mode=OneTime}" Command="{x:Bind ViewModel.ClearCachesCommand, Mode=OneTime}" />                    </StackPanel>
+                </ScrollViewer>
+                <ScrollViewer x:Name="DownloadsPage" Visibility="Collapsed">
+                    <StackPanel Spacing="12" HorizontalAlignment="Stretch">
+                        <TextBlock Text="{x:Bind r:Texts.DownloadList, Mode=OneTime}" Style="{StaticResource NativePageTitleTextStyle}" />
+                        <TextBlock Text="{x:Bind r:NativeUiTexts.DownloadsDescription, Mode=OneTime}" Style="{StaticResource NativeSubtitleTextStyle}" />
+                        <Border Style="{StaticResource NativeCardStyle}"><StackPanel Spacing="12">
+                            <TextBlock Text="{x:Bind r:NativeUiTexts.DownloadHint, Mode=OneTime}" Style="{StaticResource NativeSubtitleTextStyle}" />
+                            <Button Content="{x:Bind r:Texts.DownloadList, Mode=OneTime}" Command="{x:Bind ViewModel.OpenDownloadListWindowCommand, Mode=OneTime}" />
+                        </StackPanel></Border>
+                        <Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.WorkshopVpkFinder, Mode=OneTime}" Command="{x:Bind ViewModel.OpenWorkshopVpkFinderWindowCommand, Mode=OneTime}" />
+                    </StackPanel>
+                </ScrollViewer>
+                <ScrollViewer x:Name="HelpPage" Visibility="Collapsed">
+                    <StackPanel Spacing="12" HorizontalAlignment="Stretch">
+                        <TextBlock Text="{x:Bind r:Texts.Help, Mode=OneTime}" Style="{StaticResource NativePageTitleTextStyle}" />
+                        <TextBlock Text="{x:Bind r:NativeUiTexts.HelpDescription, Mode=OneTime}" Style="{StaticResource NativeSubtitleTextStyle}" />
+                        <Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.CheckForUpdates, Mode=OneTime}" Command="{x:Bind ViewModel.CheckUpdateCommand, Mode=OneTime}" />
+                        <Button Style="{StaticResource NativeToolButtonStyle}" Content="{x:Bind r:Texts.AboutApp, Mode=OneTime}" Command="{x:Bind ViewModel.OpenAboutWindowCommand, Mode=OneTime}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Window>

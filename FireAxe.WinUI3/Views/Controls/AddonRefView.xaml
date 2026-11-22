@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\AddonRefView.axaml
+     DataContext: AddonNodeSimpleViewModel. Two mutually exclusive states:
+       * the addon is gone  -> warning icon + "Missing addon" + "(ID: {id})"
+       * the addon is there -> enable toggle + a transparent button that jumps to the addon
+     Avalonia DockPanel -> Grid (WinUI has no DockPanel in the box; columns express the same layout). -->
+<UserControl
+    x:Class="FireAxe.Views.Controls.AddonRefView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctl="using:FireAxe.Views.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:FireAxe.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:my="using:FireAxe.Views.Controls"
+    xmlns:r="using:FireAxe.Resources"
+    mc:Ignorable="d">
+
+    <Grid>
+        <!-- ============================ missing addon ============================ -->
+        <Grid Visibility="{Binding Addon, Converter={StaticResource NullToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ctl:IconView
+                Grid.Column="0" Width="20" Height="20"
+                Margin="5,0"
+                VerticalAlignment="Center"
+                Data="{x:Bind local:Icons.Warning, Mode=OneTime}"
+                Foreground="{StaticResource FireAxeWarningBrush}" />
+
+            <TextBlock
+                Grid.Column="1"
+                Margin="5,0"
+                VerticalAlignment="Center"
+                Text="{x:Bind r:Texts.MissingAddon, Mode=OneTime}" />
+
+            <TextBlock
+                Grid.Column="2"
+                VerticalAlignment="Center"
+                IsTextSelectionEnabled="True"
+                Text="{Binding AddonId, Converter={StaticResource IdInParenthesesConverter}}"
+                TextWrapping="Wrap" />
+        </Grid>
+
+        <!-- ============================ resolved addon ============================ -->
+        <Grid Visibility="{Binding Addon, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=notnull, TargetNullValue=Collapsed, FallbackValue=Collapsed}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ShowEnableButton=false 时隐藏（Alt 用样式在"移动中"条里隐藏了它） -->
+            <my:AddonNodeEnableButton x:Name="enableButton" Grid.Column="0" />
+
+            <Button
+                x:Name="jumpButton"
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                Click="OnJumpButtonClick">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <my:AddonIconView
+                        x:Name="iconView"
+                        Grid.Column="0"
+                        Margin="0,0,2.5,0"
+                        ImageSize="40" />
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="2.5,0,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        IsTextSelectionEnabled="True"
+                        Text="{Binding Addon.Name}"
+                        TextWrapping="Wrap" />
+                </Grid>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

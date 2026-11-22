@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddonRootBackupOpenDescription" xml:space="preserve">
+    <value>Opens the backup folder of the addon directory that is currently open.</value>
+  </data>
+  <data name="AdvancedCategoryDescription" xml:space="preserve">
+    <value>Web proxy and the commands used to open folders and reveal files.</value>
+  </data>
+  <data name="AppearanceCategory" xml:space="preserve">
+    <value>Appearance &amp; language</value>
+  </data>
+  <data name="AppearanceCategoryDescription" xml:space="preserve">
+    <value>Language, colour theme and application updates.</value>
+  </data>
+  <data name="BackupCategory" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="BackupCategoryDescription" xml:space="preserve">
+    <value>Keep a backup of library changes instead of relying on manual copies.</value>
+  </data>
+  <data name="BackupEnabledDescription" xml:space="preserve">
+    <value>Write a backup file before the addon directory is changed, and restore it when a write fails.</value>
+  </data>
+  <data name="CategoryAppearance" xml:space="preserve">
+    <value>Appearance &amp; language</value>
+  </data>
+  <data name="CategoryAdvanced" xml:space="preserve">
+    <value>Network &amp; advanced</value>
+  </data>
+  <data name="CategoryBackup" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="CategoryConflict" xml:space="preserve">
+    <value>Conflict check</value>
+  </data>
+  <data name="CategoryFiles" xml:space="preserve">
+    <value>File locations</value>
+  </data>
+  <data name="CategoryGame" xml:space="preserve">
+    <value>Game</value>
+  </data>
+  <data name="CategoryWorkshopAndDownload" xml:space="preserve">
+    <value>Workshop &amp; downloads</value>
+  </data>
+  <data name="CleanFiles" xml:space="preserve">
+    <value>Review unused files before removing them.</value>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="ColorThemeDescription" xml:space="preserve">
+    <value>Follows the Windows theme unless light or dark is chosen.</value>
+  </data>
+  <data name="ConflictCategory" xml:space="preserve">
+    <value>Conflict check</value>
+  </data>
+  <data name="ConflictCategoryDescription" xml:space="preserve">
+    <value>Decide which VPK files a check treats as conflicting, and edit the ignore list.</value>
+  </data>
+  <data name="ConflictIgnoringFilesDescription" xml:space="preserve">
+    <value>One file name per line, ".txt" files only. These names are never reported as conflicts.</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="DownloadChunkCountDescription" xml:space="preserve">
+    <value>How many parts a single download is split into. 1–16.</value>
+  </data>
+  <data name="DownloadHint" xml:space="preserve">
+    <value>View active tasks, retry downloads and review results.</value>
+  </data>
+  <data name="DownloadsDescription" xml:space="preserve">
+    <value>Manage downloads and find Workshop VPK files.</value>
+  </data>
+  <data name="FileBackupIntervalDescription" xml:space="preserve">
+    <value>Minimum time between two backup files. Must be greater than 0.</value>
+  </data>
+  <data name="FileBackupEnabledDescription" xml:space="preserve">
+    <value>Write a backup before the addon directory changes, so a failed write can be rolled back.</value>
+  </data>
+  <data name="FileBackupRetainedCountDescription" xml:space="preserve">
+    <value>Older backups are deleted once this many are kept. Must be at least 1.</value>
+  </data>
+  <data name="FilesCategory" xml:space="preserve">
+    <value>File locations</value>
+  </data>
+  <data name="FilesCategoryDescription" xml:space="preserve">
+    <value>Where the settings file, the conflict ignore list and the backups live.</value>
+  </data>
+  <data name="GameCategory" xml:space="preserve">
+    <value>Game</value>
+  </data>
+  <data name="GameCategoryDescription" xml:space="preserve">
+    <value>Where the game is installed and how it is started.</value>
+  </data>
+  <data name="GamePathDescription" xml:space="preserve">
+    <value>Path of the game folder that contains the "left4dead2" folder.</value>
+  </data>
+  <data name="HelpDescription" xml:space="preserve">
+    <value>App information and updates.</value>
+  </data>
+  <data name="Inspection" xml:space="preserve">
+    <value>Inspection</value>
+  </data>
+  <data name="LanguageDescription" xml:space="preserve">
+    <value>Choose the language used by the windows opened from now on.</value>
+  </data>
+  <data name="Library" xml:space="preserve">
+    <value>Addon library</value>
+  </data>
+  <data name="LibraryDescription" xml:space="preserve">
+    <value>Browse, organize and enable addons for your game.</value>
+  </data>
+  <data name="Maintenance" xml:space="preserve">
+    <value>Library maintenance</value>
+  </data>
+  <data name="MaxConcurrentDownloadsDescription" xml:space="preserve">
+    <value>How many downloads may run at the same time. 1–16.</value>
+  </data>
+  <data name="NeedRestartBadge" xml:space="preserve">
+    <value>Applies after a restart</value>
+  </data>
+  <data name="OpenLibraryForTools" xml:space="preserve">
+    <value>Open an addon directory to use library tools.</value>
+  </data>
+  <data name="Organize" xml:space="preserve">
+    <value>Manage tags and normalize addon names.</value>
+  </data>
+  <data name="ProcessArgumentsDescription" xml:space="preserve">
+    <value>The arguments passed to that program.</value>
+  </data>
+  <data name="ProcessFileNameDescription" xml:space="preserve">
+    <value>Leave empty to use the default program for this action.</value>
+  </data>
+  <data name="ProcessFileCustomizationDescription" xml:space="preserve">
+    <value>Replace the program Windows uses to open an addon directory or to reveal a file.</value>
+  </data>
+  <data name="QuickFind" xml:space="preserve">
+    <value>Find installed</value>
+  </data>
+  <data name="Review" xml:space="preserve">
+    <value>Inspect addons, conflicts and replacements.</value>
+  </data>
+  <data name="SelectionHint" xml:space="preserve">
+    <value>Select an addon to view its details.</value>
+  </data>
+  <data name="SettingsCategoryNavigation" xml:space="preserve">
+    <value>Settings categories</value>
+  </data>
+  <data name="SettingsFileDescription" xml:space="preserve">
+    <value>Saved automatically whenever a setting changes.</value>
+  </data>
+  <data name="SettingsPageDescription" xml:space="preserve">
+    <value>Changes are saved as soon as you make them.</value>
+  </data>
+  <data name="SortAndView" xml:space="preserve">
+    <value>Sort and view</value>
+  </data>
+  <data name="ToolsDescription" xml:space="preserve">
+    <value>Inspect your library and manage addon files.</value>
+  </data>
+  <data name="UpdateCheckEnabledDescription" xml:space="preserve">
+    <value>Look for a newer release when the app starts.</value>
+  </data>
+  <data name="UpdateCheckRepositoryDescription" xml:space="preserve">
+    <value>Repository used by the update check.</value>
+  </data>
+  <data name="WebProxyCategoryDescription" xml:space="preserve">
+    <value>Route download requests through a proxy.</value>
+  </data>
+  <data name="WebProxyPasswordDescription" xml:space="preserve">
+    <value>Stored in plain text in the settings file.</value>
+  </data>
+  <data name="WorkshopCategoryDescription" xml:space="preserve">
+    <value>Keep Workshop items up to date and pick up their links automatically.</value>
+  </data>
+  <data name="PushPermissionHelp" xml:space="preserve">
+    <value>FireAxe could not write to the game's addons folder or create symbolic links. Enable Developer Mode in Windows Settings and check that the game folder is writable, then try again. If your Windows policy forbids this, close FireAxe and run it as administrator. A preflight failure leaves existing push links unchanged.</value>
+  </data>
+</root>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\FileNameFixerWindow.axaml -->
+<host:HostedPage xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.FileNameFixerWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:r="using:FireAxe.Resources" Title="{x:Bind r:Texts.FileNameFixer, Mode=OneTime}">
+    <Grid Padding="{StaticResource NativePagePadding}" RowSpacing="16" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.FileNameFixer, Mode=OneTime}" />
+        <Grid x:Name="root" Padding="0" RowSpacing="8" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="{x:Bind r:Texts.FileNameFixerTip, Mode=OneTime}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5" />
+            <Border Grid.Row="1" Style="{StaticResource NativeCardStyle}">
+                <Grid>
+                    <ListView ItemsSource="{Binding Items}" SelectionMode="None" IsItemClickEnabled="False" ItemContainerStyle="{StaticResource NativeListItemStyle}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="5" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding RelativeFilePath}" TextWrapping="Wrap" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="-&gt;" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding RelativeNewFilePath}" TextWrapping="Wrap" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="{x:Bind r:Texts.Fixed, Mode=OneTime}" Visibility="{Binding IsFixed, Converter={StaticResource VisibleWhenTrueConverter}}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind r:Texts.FailedToFix, Mode=OneTime}" Foreground="{StaticResource FireAxeWarningBrush}" Visibility="{Binding FixException, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=notnull}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    <TextBlock Text="{x:Bind r:Texts.NoItemsToFix, Mode=OneTime}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10" Visibility="{Binding Items.Count, Converter={StaticResource ZeroToVisibilityConverter}, Mode=OneWay}" />
+                </Grid>
+            </Border>
+            <Button Grid.Row="2" Content="{x:Bind r:Texts.Fix, Mode=OneTime}" Command="{Binding FixAllCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="5" />
+        </Grid>
+    </Grid>
+</host:HostedPage>

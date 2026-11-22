@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P6.3: reworked from the flat "one long scroll" layout into a Windows 11 style settings page
+     (left category navigation + SettingsCard / SettingsExpander rows). Every row of the previous
+     version is present; see docs/P6-settings-map.md for the old section -> category / card table.
+     The four EditableTextBlock x:Name values (downloadChunkCount, maxConcurrentDownloads,
+     maxRetainedBackupFileCount, fileBackupIntervalMinutes) are unchanged: AppSettingsWindow.xaml.cs
+     subscribes to their Submitting event to commit numbers through the ViewModel. -->
+<host:HostedPage
+    xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.AppSettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FireAxe.Views"
+    xmlns:r="using:FireAxe.Resources"
+    xmlns:tk="using:CommunityToolkit.WinUI.Controls"
+    xmlns:controls="using:FireAxe.Views.Controls"
+    Title="{x:Bind r:Texts.Settings, Mode=OneTime}">
+
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <local:LanguageNativeNameConverter x:Key="LanguageNativeNameConverter" />
+            <local:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+            <local:SettingsPathNoteConverter x:Key="SettingsPathNoteConverter" />
+            <local:CustomVpkPathNoteConverter x:Key="CustomVpkPathNoteConverter" />
+        </Grid.Resources>
+
+        <NavigationView
+            x:Name="CategoryNavigation"
+            PaneDisplayMode="Top"
+            OpenPaneLength="248"
+            CompactModeThresholdWidth="700"
+            ExpandedModeThresholdWidth="1000"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            IsTitleBarAutoPaddingEnabled="False"
+            AlwaysShowHeader="False"
+            IsPaneToggleButtonVisible="False"
+            SelectionChanged="OnCategorySelectionChanged">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Tag="appearance" Content="{x:Bind r:NativeUiTexts.CategoryAppearance, Mode=OneTime}" IsSelected="True"><NavigationViewItem.Icon><SymbolIcon Symbol="FontColor" /></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Tag="game" Content="{x:Bind r:NativeUiTexts.CategoryGame, Mode=OneTime}"><NavigationViewItem.Icon><SymbolIcon Symbol="Play" /></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Tag="workshop" Content="{x:Bind r:NativeUiTexts.CategoryWorkshopAndDownload, Mode=OneTime}"><NavigationViewItem.Icon><SymbolIcon Symbol="Download" /></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Tag="conflict" Content="{x:Bind r:NativeUiTexts.CategoryConflict, Mode=OneTime}"><NavigationViewItem.Icon><SymbolIcon Symbol="Important" /></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Tag="backup" Content="{x:Bind r:NativeUiTexts.CategoryBackup, Mode=OneTime}"><NavigationViewItem.Icon><SymbolIcon Symbol="Save" /></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Tag="advanced" Content="{x:Bind r:NativeUiTexts.CategoryAdvanced, Mode=OneTime}"><NavigationViewItem.Icon><SymbolIcon Symbol="Setting" /></NavigationViewItem.Icon></NavigationViewItem>
+                <NavigationViewItem Tag="files" Content="{x:Bind r:NativeUiTexts.CategoryFiles, Mode=OneTime}"><NavigationViewItem.Icon><SymbolIcon Symbol="OpenFile" /></NavigationViewItem.Icon></NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <Grid>
+                <!-- ============================= Appearance & language ============================= -->
+                <ScrollViewer x:Name="AppearancePage" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:NativeUiTexts.AppearanceCategory, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.AppearanceCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.Language, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.LanguageDescription, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8C1;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ComboBox MinWidth="200" MaxWidth="280"
+                                      ItemsSource="{x:Bind ViewModel.LanguageItemsSource, Mode=OneTime}"
+                                      SelectedItem="{Binding Settings.Language, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Loaded="OnLanguageLabelLoaded" Text="{Binding Converter={StaticResource LanguageNativeNameConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.ColorTheme, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.ColorThemeDescription, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE790;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ComboBox MinWidth="200" MaxWidth="280"
+                                      ItemsSource="{x:Bind ColorThemes, Mode=OneTime}"
+                                      SelectedItem="{Binding Settings.ColorTheme, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.IsAutoCheckUpdateEnabled, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.UpdateCheckEnabledDescription, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE895;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ToggleSwitch IsOn="{Binding Settings.IsAutoCheckUpdateEnabled, Mode=TwoWay}" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.UpdateCheckRepository, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.UpdateCheckRepositoryDescription, Mode=OneTime}"
+                                         ContentAlignment="Vertical">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8F1;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <StackPanel Spacing="6">
+                                <TextBox HorizontalAlignment="Stretch"
+                                         Text="{Binding Settings.UpdateCheckRepository, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="owner/name" />
+                                <TextBlock Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:Texts.UpdateCheckRepositoryNote, Mode=OneTime}" />
+                            </StackPanel>
+                        </tk:SettingsCard>
+
+                        <TextBlock Margin="0,10,0,0" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.SettingsPageDescription, Mode=OneTime}" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ===================================== Game ===================================== -->
+                <ScrollViewer x:Name="GamePage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:NativeUiTexts.GameCategory, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.GameCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.GamePath, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.GamePathDescription, Mode=OneTime}"
+                                         ContentAlignment="Vertical">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE7B8;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <StackPanel Spacing="6">
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding Settings.GamePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Grid.Column="1" Content="{x:Bind r:Texts.Select, Mode=OneTime}" Command="{x:Bind ViewModel.SelectGamePathCommand, Mode=OneTime}" />
+                                    <Button Grid.Column="2" Content="{x:Bind r:Texts.Find, Mode=OneTime}" Command="{x:Bind ViewModel.FindGamePathCommand, Mode=OneTime}" />
+                                </Grid>
+                            </StackPanel>
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.CustomLaunchOptions, Mode=OneTime}"
+                                         Description="{x:Bind r:Texts.CustomLaunchOptionsNote, Mode=OneTime}"
+                                         ContentAlignment="Vertical">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE756;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <TextBox Text="{Binding Settings.CustomLaunchOptions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </tk:SettingsCard>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================= Workshop & downloads ============================= -->
+                <ScrollViewer x:Name="WorkshopPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:NativeUiTexts.CategoryWorkshopAndDownload, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.WorkshopCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.WorkshopItemAutoUpdate, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8F1;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ToggleSwitch IsOn="{Binding Settings.IsAutoUpdateWorkshopItem, Mode=TwoWay}" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.AutoDetectWorkshopItemLinkInClipboard, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE77F;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ToggleSwitch IsOn="{Binding Settings.IsAutoDetectWorkshopItemLinkInClipboard, Mode=TwoWay}" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.AutoRedownload, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE896;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ToggleSwitch IsOn="{Binding Settings.IsAutoRedownload, Mode=TwoWay}" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsExpander Header="{x:Bind r:Texts.IsParallelDownloadEnabled, Mode=OneTime}"
+                                             Description="{x:Bind r:Texts.DownloadSpeedNote, Mode=OneTime}"
+                                             IsExpanded="True">
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE896;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <ToggleSwitch IsOn="{Binding Settings.IsParallelDownloadEnabled, Mode=TwoWay}" />
+                            </tk:SettingsExpander.Content>
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.DownloadChunkCount, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.DownloadChunkCountDescription, Mode=OneTime}"
+                                                 Visibility="{Binding Settings.IsParallelDownloadEnabled, Converter={StaticResource VisibleWhenTrueConverter}}">
+                                    <controls:EditableTextBlock x:Name="downloadChunkCount"
+                                                                HorizontalAlignment="Right"
+                                                                TextWrapping="Wrap"
+                                                                Value="{Binding DownloadChunkCount}" />
+                                </tk:SettingsCard>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.MaxConcurrentDownloads, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.MaxConcurrentDownloadsDescription, Mode=OneTime}">
+                                    <controls:EditableTextBlock x:Name="maxConcurrentDownloads"
+                                                                HorizontalAlignment="Right"
+                                                                TextWrapping="Wrap"
+                                                                Value="{Binding MaxConcurrentDownloads}" />
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ================================= Conflict check ================================= -->
+                <ScrollViewer x:Name="ConflictPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.VpkAddonConflict, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.ConflictCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.IgnoreHalfLife2FilesForVpkAddonConflicts, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE7BA;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <ToggleSwitch IsOn="{Binding Settings.IgnoreHalfLife2FilesForVpkAddonConflicts, Mode=TwoWay}" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.ConflictIgnoringFiles, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.ConflictIgnoringFilesDescription, Mode=OneTime}"
+                                         ContentAlignment="Vertical">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <StackPanel Spacing="6">
+                                <TextBlock IsTextSelectionEnabled="True"
+                                           Style="{StaticResource NativeSubtitleTextStyle}"
+                                           Text="{Binding Settings.CustomVpkAddonConflictIgnoringFilesDirectoryPath, Converter={StaticResource CustomVpkPathNoteConverter}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="{x:Bind r:Texts.Open, Mode=OneTime}" Command="{x:Bind ViewModel.OpenCustomVpkAddonConflictIgnoringFilesDirectory, Mode=OneTime}" />
+                                    <Button Content="{x:Bind r:Texts.Refresh, Mode=OneTime}" Click="OnRefreshConflictIgnoringFilesClick" />
+                                    <TextBlock VerticalAlignment="Center"
+                                               Text="{x:Bind r:Texts.RefreshingHint, Mode=OneTime}"
+                                               Visibility="{Binding Settings.IsLoadingCustomVpkAddonConflictIgnoringFiles, Converter={StaticResource VisibleWhenTrueConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </tk:SettingsCard>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ===================================== Backup ===================================== -->
+                <ScrollViewer x:Name="BackupPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:NativeUiTexts.BackupCategory, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.BackupCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsExpander Header="{x:Bind r:Texts.FileBackup, Mode=OneTime}"
+                                             Description="{x:Bind r:NativeUiTexts.FileBackupEnabledDescription, Mode=OneTime}"
+                                             IsExpanded="True">
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE777;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <ToggleSwitch IsOn="{Binding Settings.IsFileBackupEnabled, Mode=TwoWay}" />
+                            </tk:SettingsExpander.Content>
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.MaxRetainedBackupFileCount, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.FileBackupRetainedCountDescription, Mode=OneTime}"
+                                                 Visibility="{Binding Settings.IsFileBackupEnabled, Converter={StaticResource VisibleWhenTrueConverter}}">
+                                    <controls:EditableTextBlock x:Name="maxRetainedBackupFileCount"
+                                                                HorizontalAlignment="Right"
+                                                                TextWrapping="Wrap"
+                                                                Value="{Binding MaxRetainedBackupFileCount}" />
+                                </tk:SettingsCard>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.FileBackupIntervalMinutes, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.FileBackupIntervalDescription, Mode=OneTime}"
+                                                 Visibility="{Binding Settings.IsFileBackupEnabled, Converter={StaticResource VisibleWhenTrueConverter}}">
+                                    <controls:EditableTextBlock x:Name="fileBackupIntervalMinutes"
+                                                                HorizontalAlignment="Right"
+                                                                TextWrapping="Wrap"
+                                                                Value="{Binding FileBackupIntervalMinutes}" />
+                                </tk:SettingsCard>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.AddonRootBackupDirectoryLocationNote, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.AddonRootBackupOpenDescription, Mode=OneTime}">
+                                    <tk:SettingsCard.HeaderIcon>
+                                        <FontIcon Glyph="&#xE838;" />
+                                    </tk:SettingsCard.HeaderIcon>
+                                    <Button Content="{x:Bind r:Texts.Open, Mode=OneTime}"
+                                            Command="{x:Bind ViewModel.OpenBackupDirectoryCommand, Mode=OneTime}" />
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- =============================== Network & advanced =============================== -->
+                <ScrollViewer x:Name="AdvancedPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.WebProxy, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.WebProxyCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.WebProxyAddress, Mode=OneTime}"
+                                         Description="{x:Bind r:Texts.NeedRestartHint, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE774;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <!-- Free-form text: a plain TextBox commits back on LostFocus, which is what
+                                 EditableTextBlock's own Submitting path did (see OnStringSettingLostFocus).
+                                 Settings.WebProxyAddress validates the URI and throws; the handler shows it. -->
+                            <TextBox MinWidth="220" MaxWidth="320"
+                                     Text="{Binding Settings.WebProxyAddress, Mode=TwoWay}"
+                                     LostFocus="OnStringSettingLostFocus" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.WebProxyCredentialUserName, Mode=OneTime}"
+                                         Description="{x:Bind r:Texts.NeedRestartHint, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE77B;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <TextBox MinWidth="220" MaxWidth="320"
+                                     Text="{Binding Settings.WebProxyCredentialUserName, Mode=TwoWay}"
+                                     LostFocus="OnStringSettingLostFocus" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.WebProxyCredentialPassword, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.WebProxyPasswordDescription, Mode=OneTime}">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE72E;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <PasswordBox MinWidth="220" MaxWidth="320"
+                                         Password="{Binding Settings.WebProxyCredentialPassword, Mode=TwoWay}" />
+                        </tk:SettingsCard>
+
+                        <TextBlock Margin="0,16,0,4" Style="{StaticResource NativeSectionTitleTextStyle}" Text="{x:Bind r:Texts.ProcessFileCustomization, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,6" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.ProcessFileCustomizationDescription, Mode=OneTime}" />
+
+                        <tk:SettingsExpander Header="{x:Bind r:Texts.OpenDirectory, Mode=OneTime}"
+                                             Description="{x:Bind r:NativeUiTexts.ProcessFileNameDescription, Mode=OneTime}"
+                                             IsExpanded="True">
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE8B7;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.ProcessFileName, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.ProcessFileNameDescription, Mode=OneTime}">
+                                    <TextBox MinWidth="220" MaxWidth="320"
+                                             Text="{Binding Settings.OpenDirectoryCustomProcessFileName, Mode=TwoWay}" />
+                                </tk:SettingsCard>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.ProcessArguments, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.ProcessArgumentsDescription, Mode=OneTime}">
+                                    <TextBox MinWidth="220" MaxWidth="320"
+                                             Text="{Binding Settings.OpenDirectoryCustomProcessArguments, Mode=TwoWay}"
+                                             PlaceholderText="{x:Bind r:Texts.OpenDirectoryCustomProcessArgumentsWatermark, Mode=OneTime}" />
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+
+                        <tk:SettingsExpander Header="{x:Bind r:Texts.ShowFile, Mode=OneTime}"
+                                             Description="{x:Bind r:NativeUiTexts.ProcessFileNameDescription, Mode=OneTime}"
+                                             IsExpanded="True">
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.ProcessFileName, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.ProcessFileNameDescription, Mode=OneTime}">
+                                    <TextBox MinWidth="220" MaxWidth="320"
+                                             Text="{Binding Settings.ShowFileCustomProcessFileName, Mode=TwoWay}" />
+                                </tk:SettingsCard>
+                                <tk:SettingsCard Header="{x:Bind r:Texts.ProcessArguments, Mode=OneTime}"
+                                                 Description="{x:Bind r:NativeUiTexts.ProcessArgumentsDescription, Mode=OneTime}">
+                                    <TextBox MinWidth="220" MaxWidth="320"
+                                             Text="{Binding Settings.ShowFileCustomProcessArguments, Mode=TwoWay}"
+                                             PlaceholderText="{x:Bind r:Texts.ShowFileCustomProcessArgumentsWatermark, Mode=OneTime}" />
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ================================ File locations ================================ -->
+                <ScrollViewer x:Name="FilesPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Margin="24,16,24,24" Spacing="6" HorizontalAlignment="Stretch">
+                        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:NativeUiTexts.FilesCategory, Mode=OneTime}" />
+                        <TextBlock Margin="0,0,0,10" Style="{StaticResource NativeSubtitleTextStyle}" Text="{x:Bind r:NativeUiTexts.FilesCategoryDescription, Mode=OneTime}" />
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.Settings, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.SettingsFileDescription, Mode=OneTime}"
+                                         ContentAlignment="Vertical">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <StackPanel Spacing="6">
+                                <TextBlock IsTextSelectionEnabled="True"
+                                           Style="{StaticResource NativeSubtitleTextStyle}"
+                                           Text="{Binding Settings.SettingsFilePath, Converter={StaticResource SettingsPathNoteConverter}}" />
+                                <Button HorizontalAlignment="Left"
+                                        Content="{x:Bind r:Texts.Open, Mode=OneTime}"
+                                        Command="{x:Bind ViewModel.ShowSettingsFileCommand, Mode=OneTime}" />
+                            </StackPanel>
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="{x:Bind r:Texts.VpkAddonConflict, Mode=OneTime}"
+                                         Description="{x:Bind r:NativeUiTexts.ConflictIgnoringFilesDescription, Mode=OneTime}"
+                                         ContentAlignment="Vertical">
+                            <tk:SettingsCard.HeaderIcon>
+                                <FontIcon Glyph="&#xE838;" />
+                            </tk:SettingsCard.HeaderIcon>
+                            <TextBlock IsTextSelectionEnabled="True"
+                                       Style="{StaticResource NativeSubtitleTextStyle}"
+                                       Text="{Binding Settings.CustomVpkAddonConflictIgnoringFilesDirectoryPath, Converter={StaticResource CustomVpkPathNoteConverter}}" />
+                        </tk:SettingsCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</host:HostedPage>

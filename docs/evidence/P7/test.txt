@@ -1,0 +1,6 @@
+dotnet test FireAxe.Tests/FireAxe.Tests.csproj -c Release -p:Platform=x64 --no-build --logger trx;LogFileName=tests.trx --results-directory <REPO_ROOT>\artifacts\p7-final\FireAxe-0.1.0-win-x64-20261111-140105-89984733\evidence --nologo
+<REPO_ROOT>\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+结果文件: <REPO_ROOT>\artifacts\p7-final\FireAxe-0.1.0-win-x64-20261111-140105-89984733\evidence\tests.trx
+
+已通过! - 失败:     0，通过:    18，已跳过:     0，总计:    18，持续时间: 1 s - FireAxe.Tests.dll (net10.0)

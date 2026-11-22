@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\AddonIconView.axaml
+     DataContext: AddonNodeSimpleViewModel (the Alt x:DataType), so this control uses classic {Binding}.
+     The image / folder / question states are mutually exclusive, exactly like the Alt flags. -->
+<UserControl
+    x:Class="FireAxe.Views.Controls.AddonIconView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctl="using:FireAxe.Views.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:FireAxe.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Image
+            x:Name="image"
+            Source="{Binding Image, Converter={StaticResource ImageSourceConverter}}"
+            Stretch="Uniform"
+            Visibility="{Binding ShouldShowImage, Converter={StaticResource VisibleWhenTrueConverter}, FallbackValue=Collapsed}" />
+
+        <ctl:IconView
+            x:Name="unknownIcon"
+            Data="{x:Bind local:Icons.Question, Mode=OneTime}"
+            Visibility="{Binding ShouldShowUnknownIcon, Converter={StaticResource VisibleWhenTrueConverter}, FallbackValue=Collapsed}" />
+
+        <ctl:IconView
+            x:Name="folderIcon"
+            Data="{x:Bind local:Icons.Folder, Mode=OneTime}"
+            Visibility="{Binding ShouldShowFolderIcon, Converter={StaticResource VisibleWhenTrueConverter}, FallbackValue=Collapsed}" />
+    </Grid>
+</UserControl>

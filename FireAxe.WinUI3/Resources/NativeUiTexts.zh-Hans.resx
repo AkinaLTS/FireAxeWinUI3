@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddonRootBackupOpenDescription" xml:space="preserve">
+    <value>打开当前打开的附加组件目录的备份文件夹。</value>
+  </data>
+  <data name="AdvancedCategoryDescription" xml:space="preserve">
+    <value>Web 代理，以及打开目录、显示文件时使用的程序。</value>
+  </data>
+  <data name="AppearanceCategory" xml:space="preserve">
+    <value>外观与语言</value>
+  </data>
+  <data name="AppearanceCategoryDescription" xml:space="preserve">
+    <value>语言、颜色主题与应用更新。</value>
+  </data>
+  <data name="BackupCategory" xml:space="preserve">
+    <value>备份</value>
+  </data>
+  <data name="BackupCategoryDescription" xml:space="preserve">
+    <value>在修改附加组件目录前自动保存备份，无需手动复制。</value>
+  </data>
+  <data name="BackupEnabledDescription" xml:space="preserve">
+    <value>修改附加组件目录前写入备份文件，写入失败时用备份恢复。</value>
+  </data>
+  <data name="CategoryAppearance" xml:space="preserve">
+    <value>外观与语言</value>
+  </data>
+  <data name="CategoryAdvanced" xml:space="preserve">
+    <value>网络与高级</value>
+  </data>
+  <data name="CategoryBackup" xml:space="preserve">
+    <value>备份</value>
+  </data>
+  <data name="CategoryConflict" xml:space="preserve">
+    <value>冲突检查</value>
+  </data>
+  <data name="CategoryFiles" xml:space="preserve">
+    <value>文件位置</value>
+  </data>
+  <data name="CategoryGame" xml:space="preserve">
+    <value>游戏</value>
+  </data>
+  <data name="CategoryWorkshopAndDownload" xml:space="preserve">
+    <value>工坊与下载</value>
+  </data>
+  <data name="CleanFiles" xml:space="preserve">
+    <value>删除前先检查未使用的文件。</value>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>清除筛选</value>
+  </data>
+  <data name="ColorThemeDescription" xml:space="preserve">
+    <value>未选择浅色或深色时跟随 Windows 主题。</value>
+  </data>
+  <data name="ConflictCategory" xml:space="preserve">
+    <value>冲突检查</value>
+  </data>
+  <data name="ConflictCategoryDescription" xml:space="preserve">
+    <value>决定检查时哪些 VPK 文件被视为冲突，并编辑忽略列表。</value>
+  </data>
+  <data name="ConflictIgnoringFilesDescription" xml:space="preserve">
+    <value>每行一个文件名，仅支持“.txt”文件。这些文件名不会被报告为冲突。</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="DownloadChunkCountDescription" xml:space="preserve">
+    <value>单个下载被切分的分片数,范围 1–16。</value>
+  </data>
+  <data name="DownloadHint" xml:space="preserve">
+    <value>查看进行中的任务、重试下载并检查结果。</value>
+  </data>
+  <data name="DownloadsDescription" xml:space="preserve">
+    <value>管理下载并查找创意工坊 VPK 文件。</value>
+  </data>
+  <data name="FileBackupIntervalDescription" xml:space="preserve">
+    <value>两次备份之间的最短时间,必须大于 0。</value>
+  </data>
+  <data name="FileBackupEnabledDescription" xml:space="preserve">
+    <value>在附加组件目录改动前写入备份，写入失败时可以回滚。</value>
+  </data>
+  <data name="FileBackupRetainedCountDescription" xml:space="preserve">
+    <value>保留的备份超过该数量时会删除较旧的备份。必须不小于 1。</value>
+  </data>
+  <data name="FilesCategory" xml:space="preserve">
+    <value>文件位置</value>
+  </data>
+  <data name="FilesCategoryDescription" xml:space="preserve">
+    <value>设置文件、冲突忽略列表与备份文件所在的位置。</value>
+  </data>
+  <data name="GameCategory" xml:space="preserve">
+    <value>游戏</value>
+  </data>
+  <data name="GameCategoryDescription" xml:space="preserve">
+    <value>游戏的安装位置与启动方式。</value>
+  </data>
+  <data name="GamePathDescription" xml:space="preserve">
+    <value>包含“left4dead2”文件夹的游戏目录路径。</value>
+  </data>
+  <data name="HelpDescription" xml:space="preserve">
+    <value>应用信息与更新。</value>
+  </data>
+  <data name="Inspection" xml:space="preserve">
+    <value>检查</value>
+  </data>
+  <data name="LanguageDescription" xml:space="preserve">
+    <value>选择此后打开的窗口使用的语言。</value>
+  </data>
+  <data name="Library" xml:space="preserve">
+    <value>附加组件库</value>
+  </data>
+  <data name="LibraryDescription" xml:space="preserve">
+    <value>浏览、整理并启用游戏的附加组件。</value>
+  </data>
+  <data name="Maintenance" xml:space="preserve">
+    <value>库维护</value>
+  </data>
+  <data name="MaxConcurrentDownloadsDescription" xml:space="preserve">
+    <value>同时进行的下载数量,范围 1–16。</value>
+  </data>
+  <data name="NeedRestartBadge" xml:space="preserve">
+    <value>重启后生效</value>
+  </data>
+  <data name="OpenLibraryForTools" xml:space="preserve">
+    <value>打开附加组件目录后即可使用库工具。</value>
+  </data>
+  <data name="Organize" xml:space="preserve">
+    <value>管理标签并规范化附加组件名称。</value>
+  </data>
+  <data name="ProcessArgumentsDescription" xml:space="preserve">
+    <value>传递给该程序的参数。</value>
+  </data>
+  <data name="ProcessFileNameDescription" xml:space="preserve">
+    <value>留空则使用该操作默认的程序。</value>
+  </data>
+  <data name="ProcessFileCustomizationDescription" xml:space="preserve">
+    <value>替换 Windows 打开附加组件目录或显示文件时使用的程序。</value>
+  </data>
+  <data name="QuickFind" xml:space="preserve">
+    <value>查找已安装</value>
+  </data>
+  <data name="Review" xml:space="preserve">
+    <value>检查附加组件、冲突与替换项。</value>
+  </data>
+  <data name="SelectionHint" xml:space="preserve">
+    <value>选择一个附加组件以查看详情。</value>
+  </data>
+  <data name="SettingsCategoryNavigation" xml:space="preserve">
+    <value>设置分类</value>
+  </data>
+  <data name="SettingsFileDescription" xml:space="preserve">
+    <value>每次修改设置后自动保存。</value>
+  </data>
+  <data name="SettingsPageDescription" xml:space="preserve">
+    <value>修改后立即保存。</value>
+  </data>
+  <data name="SortAndView" xml:space="preserve">
+    <value>排序与视图</value>
+  </data>
+  <data name="ToolsDescription" xml:space="preserve">
+    <value>检查库中的内容并管理附加组件文件。</value>
+  </data>
+  <data name="UpdateCheckEnabledDescription" xml:space="preserve">
+    <value>启动应用时检查是否有新版本。</value>
+  </data>
+  <data name="UpdateCheckRepositoryDescription" xml:space="preserve">
+    <value>更新检查所使用的仓库。</value>
+  </data>
+  <data name="WebProxyCategoryDescription" xml:space="preserve">
+    <value>通过代理转发下载请求。</value>
+  </data>
+  <data name="WebProxyPasswordDescription" xml:space="preserve">
+    <value>以明文形式保存在设置文件中。</value>
+  </data>
+  <data name="WorkshopCategoryDescription" xml:space="preserve">
+    <value>保持创意工坊项目为最新，并自动识别其链接。</value>
+  </data>
+  <data name="PushPermissionHelp" xml:space="preserve">
+    <value>FireAxe 无法写入游戏的 addons 文件夹或创建符号链接。请在 Windows 设置中启用“开发者模式”，并确认游戏文件夹可写，然后重试。若系统策略禁止此操作，请关闭 FireAxe 并以管理员身份运行。推送前权限检查失败时，已有推送链接会保留。</value>
+  </data>
+</root>

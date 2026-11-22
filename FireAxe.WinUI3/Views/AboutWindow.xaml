@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\AboutWindow.axaml -->
+<host:HostedPage
+    xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.AboutWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:r="using:FireAxe.Resources"
+    xmlns:local="using:FireAxe"
+    Title="{x:Bind r:Texts.AboutApp, Mode=OneTime}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <StackPanel Padding="{StaticResource NativePagePadding}" Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Image Width="64" Height="64" Source="ms-appx:///Assets/AppLogo.ico" />
+            <TextBlock VerticalAlignment="Center" FontSize="22" FontWeight="Bold" Text="FireAxeWinUI3" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock FontSize="15" Text="{x:Bind r:Texts.VersionColon, Mode=OneTime}" />
+            <TextBlock FontSize="15" Text="{x:Bind local:AppGlobal.VersionString, Mode=OneTime}" />
+            <TextBlock Margin="10,0,0,0" Text="Powered by WinUI 3!" />
+        </StackPanel>
+        <TextBlock Text="{x:Bind FrameworkDescription, Mode=OneTime}" />
+        <TextBlock FontSize="16" Text="{x:Bind r:Texts.AppDescription, Mode=OneTime}" TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="{x:Bind r:Texts.AuthorColon, Mode=OneTime}" />
+            <TextBlock Text="KtOrangeeK(ktxiaok)  ktxiaok@foxmail.com" />
+        </StackPanel>
+        <HyperlinkButton Content="AkinaLTS/FireAxeWinUI3" NavigateUri="https://github.com/AkinaLTS/FireAxeWinUI3" />
+        <HyperlinkButton Content="FireAxe (upstream) · ktxiaok/FireAxe" NavigateUri="https://github.com/ktxiaok/FireAxe" />
+        <TextBlock Text="License: Apache-2.0 license" IsTextSelectionEnabled="True" />
+    </StackPanel>
+    </ScrollViewer>
+</host:HostedPage>

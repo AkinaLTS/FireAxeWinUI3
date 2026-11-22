@@ -1,0 +1,10 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- 全新项目：版本号从 0.0.0 起手，不承接 FireAxe_Alt 的 0.7.6。
+         P3 完成记 0.1.0，P7 全部验收完成后记 0.5.0。 -->
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+</Project>

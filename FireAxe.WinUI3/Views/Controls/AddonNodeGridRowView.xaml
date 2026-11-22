@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\AddonNodeGridRowView.axaml
+     The visible DataContext of the content is AddonNodeListItemViewModel (the binder in code-behind hands it
+     to rootGrid), while the control itself keeps the AddonNode DataContext of its ListViewItem.
+     Column widths are unchanged: 50 / * / * / 75 / Auto. -->
+<UserControl
+    x:Class="FireAxe.Views.Controls.AddonNodeGridRowView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctl="using:FireAxe.Views.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:FireAxe.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:my="using:FireAxe.Views.Controls"
+    mc:Ignorable="d">
+
+    <Grid
+        x:Name="rootGrid"
+        ColumnSpacing="0"
+        RowSpacing="0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="75" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="5,0,5,0">
+            <my:AddonIconView ImageSize="40" SpecialIconSize="40" />
+        </Grid>
+
+        <TextBlock
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            IsTextSelectionEnabled="False"
+            IsHitTestVisible="False"
+            Text="{Binding Addon.Name}"
+            TextWrapping="Wrap" />
+
+        <Grid
+            Grid.Column="2"
+            Margin="0,0,5,0"
+            VerticalAlignment="Center">
+            <!-- Avalonia needed ClipToBounds here because its WrapPanel inside a fixed-width column could
+                 still be wider than the column; the panel below wraps instead, so nothing overflows. -->
+            <ItemsControl ItemsSource="{Binding Addon.TagsInHierarchy}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="2">
+                            <my:AddonTagView FontSize="11" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <my:WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </Grid>
+
+        <TextBlock
+            Grid.Column="3"
+            VerticalAlignment="Center"
+            Text="{Binding Addon.FileSize, Converter={StaticResource ReadableBytesConverter}, FallbackValue=''}"
+            TextTrimming="CharacterEllipsis"
+            Visibility="{Binding Addon.FileSize, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=notnull}" />
+
+        <Grid
+            Grid.Column="4"
+            Margin="5,0,5,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ctl:IconView
+                Grid.Column="0"
+                Width="20"
+                Height="20"
+                Margin="5,0,5,0"
+                Data="{x:Bind local:Icons.Warning, Mode=OneTime}"
+                Foreground="{StaticResource FireAxeWarningBrush}"
+                Visibility="{Binding Addon.Problems.Count, Converter={StaticResource NotEmptyToVisibilityConverter}, FallbackValue=Collapsed}" />
+
+            <my:AddonNodeEnableButton Grid.Column="1" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\AddonTagCheckBoxList.axaml (+ AddonTagCheckBox.axaml)
+     DataContext: AddonNodeExplorerViewModel.
+     Differences from Avalonia:
+       * The per-tag <AddonTagCheckBox> control (a CheckBox + a TextBlock in a DockPanel) became a plain
+         CheckBox in the item template, whose Content is the tag, draws the same checkbox-plus-label pair.
+       * Avalonia walked the logical tree (GetLogicalDescendants) on every toggle. WinUI has no logical
+         tree, so each realized CheckBox registers itself in _checkBoxes on Loaded; All/None and the
+         SelectedTags projection then work on that dictionary. ItemsControl is not virtualizing here,
+         so every tag stays realized while the panel is open. -->
+<UserControl
+    x:Class="FireAxe.Views.Controls.AddonTagCheckBoxList"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:r="using:FireAxe.Resources"
+    mc:Ignorable="d">
+
+    <StackPanel Orientation="Vertical">
+        <StackPanel Orientation="Horizontal">
+            <Button
+                x:Name="allButton"
+                Margin="5"
+                Click="OnAllButtonClick"
+                Content="{x:Bind r:Texts.All, Mode=OneTime}" />
+            <Button
+                x:Name="noneButton"
+                Margin="5"
+                Click="OnNoneButtonClick"
+                Content="{x:Bind r:Texts.None, Mode=OneTime}" />
+        </StackPanel>
+
+        <ItemsControl x:Name="checkBoxesControl" ItemsSource="{Binding ExistingTags}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox
+                        Margin="5"
+                        Checked="OnCheckBoxToggled"
+                        Content="{Binding}"
+                        Loaded="OnCheckBoxLoaded"
+                        Unchecked="OnCheckBoxToggled"
+                        Unloaded="OnCheckBoxUnloaded" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

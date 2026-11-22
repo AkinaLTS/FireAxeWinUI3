@@ -1,0 +1,662 @@
+﻿using Downloader;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Serilog;
+using System;
+
+namespace FireAxe;
+
+public sealed class DownloadService : IDownloadService
+{
+    private const int SaveDownloadProgressIntervalMs = 1000;
+
+    private static readonly JsonSerializerSettings s_downloadInfoJsonSettings = new()
+    {
+        Formatting = Formatting.Indented
+    };
+
+    private sealed class DownloadItem : IDownloadItem
+    {
+        private bool _disposed = false;
+
+        private readonly DownloadService _service;
+        private readonly Downloader.DownloadConfiguration _config;
+        private readonly string _url;
+        private readonly string _filePath;
+
+        private long _downloadedBytes = 0;
+
+        private double _speed = 0;
+
+        private long _lastSaveTimeMs = Environment.TickCount64;
+
+        private long _totalBytes = 0;
+
+        private Exception? _exception = null;
+
+        // NOTE: The field _status is always Running when the downloader is in state Running or Paused.
+        private DownloadStatus _status = DownloadStatus.Preparing;
+
+        private Downloader.DownloadService? _download = null;
+
+        private bool _downloadSlotHeld = false;
+
+        private readonly object _downloadLock = new();
+
+        private bool _completed = false;
+
+        private readonly TaskCompletionSource _waitTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        internal DownloadItem(string url, string filePath, DownloadService service, Downloader.DownloadConfiguration downloaderConfig)
+        {
+            _service = service;
+            _config = downloaderConfig;
+            _url = url;
+            _filePath = filePath;
+
+            Task.Run(async () =>
+            {
+                bool downloadCreated = false;
+
+                try
+                {
+                    DownloadPackage? downloadPackage = null;
+                    string downloadInfoFilePath = filePath + IDownloadService.DownloadInfoFileExtension;
+                    string downloadingFilePath = filePath + IDownloadService.DownloadingFileExtension;
+                    if (File.Exists(downloadInfoFilePath))
+                    {
+                        try
+                        {
+                            var downloadPackageJObj = JObject.Parse(File.ReadAllText(downloadInfoFilePath));
+                            downloadPackageJObj[nameof(DownloadPackage.FileName)] = downloadingFilePath;
+                            if (downloadPackageJObj.TryGetValue(nameof(DownloadPackage.Storage), out var storageToken))
+                            {
+                                storageToken[nameof(ConcurrentStream.Path)] = downloadingFilePath;
+                            }
+                            downloadPackage = downloadPackageJObj.ToObject<DownloadPackage>();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception occurred during reading the {Extension} file: {FilePath}", IDownloadService.DownloadInfoFileExtension, downloadInfoFilePath);
+                        }
+                        if (downloadPackage != null)
+                        {
+                            if (downloadPackage.Urls.Length != 1 || downloadPackage.Urls[0] != url)
+                            {
+                                downloadPackage.Dispose();
+                                downloadPackage = null;
+                            }
+                        }
+                    }
+
+                    while (true)
+                    {
+                        lock (_downloadLock)
+                        {
+                            if (_disposed || _completed || (_status != DownloadStatus.Preparing && _status != DownloadStatus.PreparingAndPaused))
+                            {
+                                break;
+                            }
+                        }
+
+                        if (_service.TryAcquireDownloadSlot())
+                        {
+                            bool releaseImmediately = false;
+                            lock (_downloadLock)
+                            {
+                                if (_disposed || _completed || (_status != DownloadStatus.Preparing && _status != DownloadStatus.PreparingAndPaused))
+                                {
+                                    releaseImmediately = true;
+                                }
+                                else
+                                {
+                                    _downloadSlotHeld = true;
+                                }
+                            }
+                            if (releaseImmediately)
+                            {
+                                _service.ReleaseDownloadSlot();
+                            }
+                            break;
+                        }
+
+                        await Task.Delay(100).ConfigureAwait(false);
+                    }
+
+                    Downloader.DownloadService? createdDownload = null;
+                    lock (_downloadLock)
+                    {
+                        if (!_disposed && !_completed && (_status == DownloadStatus.Preparing || _status == DownloadStatus.PreparingAndPaused))
+                        {
+                            createdDownload = new(_config);
+                            createdDownload.DownloadStarted += OnDownloadStarted;
+                            createdDownload.DownloadProgressChanged += OnDownloadProgressChanged;
+                            createdDownload.DownloadFileCompleted += OnDownloadFileCompleted;
+                            _download = createdDownload;
+                            downloadCreated = true;
+                        }
+                        else
+                        {
+                            downloadPackage?.Dispose();
+                            downloadPackage = null;
+                        }
+                    }
+
+                    if (createdDownload is not null)
+                    {
+                        Task downloadTask = downloadPackage == null
+                            ? createdDownload.DownloadFileTaskAsync(url, downloadingFilePath)
+                            : createdDownload.DownloadFileTaskAsync(downloadPackage);
+                        _ = downloadTask.ContinueWith(
+                            t => Log.Error(t.Exception, "Unhandled exception from Downloader.DownloadFileTaskAsync for {FilePath}", _filePath),
+                            CancellationToken.None,
+                            TaskContinuationOptions.OnlyOnFaulted,
+                            TaskScheduler.Default);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (_downloadLock)
+                    {
+                        if (!_status.IsCompleted())
+                        {
+                            _exception = ex;
+                            _status = DownloadStatus.Failed;
+                        }
+                    }
+                }
+
+                if (!downloadCreated)
+                {
+                    OnCompleted();
+                }
+            });
+        }
+
+        public string Url => _url;
+
+        public string FilePath => _filePath;
+
+        public long DownloadedBytes
+        {
+            get => Volatile.Read(ref _downloadedBytes);
+            private set => Volatile.Write(ref _downloadedBytes, value);
+        }
+
+        public long TotalBytes
+        {
+            get => Volatile.Read(ref _totalBytes);
+            private set => Volatile.Write(ref _totalBytes, value);
+        }
+
+        public double BytesPerSecondSpeed
+        {
+            get => Volatile.Read(ref _speed);
+            private set => Volatile.Write(ref _speed, value);
+        }
+
+        public Exception Exception
+        {
+            get
+            {
+                lock (_downloadLock)
+                {
+                    if (_exception == null)
+                    {
+                        throw new InvalidOperationException("exception not set");
+                    }
+                    return _exception;
+                }
+            }
+        }
+
+        public DownloadStatus Status
+        {
+            get
+            {
+                Downloader.DownloadService download;
+                lock (_downloadLock)
+                {
+                    if (_download is null)
+                    {
+                        return _status;
+                    }
+                    download = _download;
+                }
+
+                try
+                {
+                    switch (download.Status)
+                    {
+                        case Downloader.DownloadStatus.Running:
+                            return DownloadStatus.Running;
+                        case Downloader.DownloadStatus.Paused:
+                            return DownloadStatus.Paused;
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Fall through to synchronized _status when disposed concurrently.
+                }
+
+                lock (_downloadLock)
+                {
+                    return _status;
+                }
+            }
+        }
+
+        public void Pause()
+        {
+            Downloader.DownloadService? download;
+            lock (_downloadLock)
+            {
+                if (_status == DownloadStatus.Preparing)
+                {
+                    _status = DownloadStatus.PreparingAndPaused;
+                }
+                download = _download;
+            }
+            download?.Pause();
+        }
+
+        public void Resume()
+        {
+            Downloader.DownloadService? download;
+            lock (_downloadLock)
+            {
+                if (_status == DownloadStatus.PreparingAndPaused)
+                {
+                    _status = DownloadStatus.Preparing;
+                }
+                download = _download;
+            }
+            download?.Resume();
+        }
+
+        public void Cancel()
+        {
+            Downloader.DownloadService? download = null;
+            lock (_downloadLock)
+            {
+                if (!_status.IsCompleted())
+                {
+                    _status = DownloadStatus.Cancelled;
+                }
+
+                download = _download;
+            }
+            download?.CancelAsync();
+        }
+
+        public void Wait()
+        {
+            lock (_downloadLock)
+            {
+                while (!_status.IsCompleted() && !_completed)
+                {
+                    Monitor.Wait(_downloadLock);
+                }
+            }
+        }
+
+        public Task WaitAsync()
+        {
+            return _waitTaskCompletionSource.Task;
+        }
+
+        public void Dispose()
+        {
+            Downloader.DownloadService? download = null;
+            lock (_downloadLock)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+
+                if (!_status.IsCompleted())
+                {
+                    _status = DownloadStatus.Cancelled;
+                }
+
+                download = _download;
+                _download = null;
+            }
+            OnCompleted();
+            if (download is not null)
+            {
+                download.DownloadStarted -= OnDownloadStarted;
+                download.DownloadProgressChanged -= OnDownloadProgressChanged;
+                download.DownloadFileCompleted -= OnDownloadFileCompleted;
+                try
+                {
+                    download.CancelAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception occurred during DownloadItem.Dispose cancel.");
+                }
+                DisposeDownload(download);
+            }
+        }
+
+        private void OnDownloadFileCompleted(object? sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                lock (_downloadLock)
+                {
+                    _status = DownloadStatus.Cancelled;
+                }
+            }
+            else if (e.Error != null)
+            {
+                lock (_downloadLock)
+                {
+                    _exception = e.Error;
+                    _status = DownloadStatus.Failed;
+                }
+            }
+            else
+            {
+                string downloadingPath = _filePath + IDownloadService.DownloadingFileExtension;
+                string downloadInfoPath = _filePath + IDownloadService.DownloadInfoFileExtension;
+                try
+                {
+                    if (File.Exists(_filePath))
+                    {
+                        File.Delete(_filePath);
+                    }
+                    File.Move(downloadingPath, _filePath);
+                    try
+                    {
+                        if (File.Exists(downloadInfoPath))
+                        {
+                            File.Delete(downloadInfoPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Exception occurred during deleting the file: {FilePath}", downloadInfoPath);
+                    }
+                    lock (_downloadLock)
+                    {
+                        _status = DownloadStatus.Succeeded;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (_downloadLock)
+                    {
+                        _exception = ex;
+                        _status = DownloadStatus.Failed;
+                    }
+                }
+            }
+
+            OnCompleted();
+        }
+
+        private void OnDownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
+        {
+            DownloadedBytes = e.ReceivedBytesSize;
+            BytesPerSecondSpeed = e.BytesPerSecondSpeed;
+
+            Downloader.DownloadService? download;
+            long lastSaveTimeMs;
+            lock (_downloadLock)
+            {
+                download = _download;
+                if (download is null)
+                {
+                    return;
+                }
+                lastSaveTimeMs = _lastSaveTimeMs;
+            }
+
+            bool needSave = false;
+            long currentTime = Environment.TickCount64;
+            if (currentTime - lastSaveTimeMs > SaveDownloadProgressIntervalMs)
+            {
+                needSave = true;
+                lock (_downloadLock)
+                {
+                    _lastSaveTimeMs = currentTime;
+                }
+            }
+            
+            if (needSave)
+            {
+                string savePath = _filePath + IDownloadService.DownloadInfoFileExtension;
+                try
+                {
+                    string serializedPackage = JsonConvert.SerializeObject(download.Package, s_downloadInfoJsonSettings);
+                    FileSystemUtils.WriteAllTextAtomically(savePath, serializedPackage);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Download was disposed while saving progress.
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception occurred during writing {Extension} file: {FilePath}", IDownloadService.DownloadInfoFileExtension, savePath);
+                }
+            }
+        }
+
+        private void OnDownloadStarted(object? sender, DownloadStartedEventArgs e)
+        {
+            TotalBytes = e.TotalBytesToReceive;
+
+            Downloader.DownloadService? downloadToPause = null;
+            lock (_downloadLock)
+            {
+                if (_status is DownloadStatus.PreparingAndPaused)
+                {
+                    downloadToPause = _download;
+                }
+                _status = DownloadStatus.Running;
+            }
+            downloadToPause?.Pause();
+        }
+
+        private void OnCompleted()
+        {
+            bool shouldComplete = false;
+            bool shouldReleaseSlot = false;
+            lock (_downloadLock)
+            {
+                if (!_completed)
+                {
+                    _completed = true;
+                    shouldComplete = true;
+                    if (_downloadSlotHeld)
+                    {
+                        _downloadSlotHeld = false;
+                        shouldReleaseSlot = true;
+                    }
+                    Monitor.PulseAll(_downloadLock);
+                }
+            }
+
+            if (!shouldComplete)
+            {
+                return;
+            }
+
+            if (shouldReleaseSlot)
+            {
+                _service.ReleaseDownloadSlot();
+            }
+
+            lock (_service._downloadItemsLock)
+            {
+                _service._activeDownloadItems.Remove(this);
+            }
+
+            _waitTaskCompletionSource.TrySetResult();
+        }
+
+        private static void DisposeDownload(Downloader.DownloadService download)
+        {
+            try
+            {
+                download.Dispose();
+            }
+            catch (Exception ex)
+            {
+                LogException(ex);
+            }
+            try
+            {
+                download.Package.Dispose();
+            }
+            catch (Exception ex)
+            {
+                LogException(ex);
+            }
+
+            void LogException(Exception ex)
+            {
+                Log.Error(ex, "Exception occurred during DownloadItem.DisposeDownload.");
+            }
+        }
+    }
+
+    private volatile bool _disposed = false;
+
+    private readonly object _settingsLock = new();
+    private DownloadServiceSettings _settings = null!;
+    private Downloader.DownloadConfiguration _downloaderConfig = null!;
+
+    private readonly object _downloadItemsLock = new();
+    private readonly HashSet<DownloadItem> _activeDownloadItems = new();
+
+    private readonly object _concurrencyLock = new();
+    private int _runningDownloads = 0;
+    private int _maxConcurrentDownloads = 3;
+
+    public DownloadService(DownloadServiceSettings settings)
+    {
+        Settings = settings;
+    }
+
+    public DownloadServiceSettings Settings
+    {
+        get => _settings;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+
+            lock (_settingsLock)
+            {
+                _settings = value;
+
+                _downloaderConfig = new()
+                {
+                    ChunkCount = Math.Max(1, _settings.ChunkCount),
+                    ParallelDownload = _settings.IsParallelDownloadEnabled && _settings.ChunkCount > 1
+                };
+                if (_settings.Proxy is { } proxy)
+                {
+                    _downloaderConfig.RequestConfiguration.Proxy = proxy;
+                }
+            }
+
+            lock (_concurrencyLock)
+            {
+                _maxConcurrentDownloads = Math.Clamp(_settings.MaxConcurrentDownloads, 1, 16);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to take a concurrency slot for a download. Returns false when the limit is currently full.
+    /// </summary>
+    internal bool TryAcquireDownloadSlot()
+    {
+        lock (_concurrencyLock)
+        {
+            if (_runningDownloads >= _maxConcurrentDownloads)
+            {
+                return false;
+            }
+            _runningDownloads++;
+            return true;
+        }
+    }
+
+    internal void ReleaseDownloadSlot()
+    {
+        lock (_concurrencyLock)
+        {
+            if (_runningDownloads > 0)
+            {
+                _runningDownloads--;
+            }
+        }
+    }
+
+    public IEnumerable<IDownloadItem> ActiveDownloadItems
+    {
+        get
+        {
+            lock (_downloadItemsLock)
+            {
+                return [.. _activeDownloadItems];
+            }
+        }
+    }
+
+    public IDownloadItem Download(string url, string filePath)
+    {
+        ArgumentNullException.ThrowIfNull(url);
+        ArgumentNullException.ThrowIfNull(filePath);
+
+        ThrowIfDisposed();
+
+        Downloader.DownloadConfiguration downloaderConfig;
+        lock (_settingsLock)
+        {
+            downloaderConfig = _downloaderConfig;
+        }
+        lock (_downloadItemsLock)
+        {
+            var downloadItem = new DownloadItem(url, filePath, this, downloaderConfig);
+            _activeDownloadItems.Add(downloadItem);
+            return downloadItem;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+
+            DownloadItem[] downloadItems;
+            lock (_downloadItemsLock)
+            {
+                downloadItems = [.. _activeDownloadItems];
+            }
+            var downloadItemDisposeTasks = new Task[downloadItems.Length];
+            for (int i = 0, len = downloadItems.Length; i < len; i++)
+            {
+                var downloadItem = downloadItems[i];
+                downloadItemDisposeTasks[i] = Task.Run(downloadItem.Dispose);
+            }
+            await Task.WhenAll(downloadItemDisposeTasks).ConfigureAwait(false);
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().Name);
+        }
+    }
+}

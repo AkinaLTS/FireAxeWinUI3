@@ -1,0 +1,14 @@
+dotnet build FireAxe.sln -c Release -p:Platform=x64 --nologo
+  正在确定要还原的项目…
+  已还原 <REPO_ROOT>\FireAxe.Core\FireAxe.Core.csproj (用时 270 毫秒)。
+  已还原 <REPO_ROOT>\FireAxe.WinUI3\FireAxe.WinUI3.csproj (用时 280 毫秒)。
+  1 个项目(共 3 个)是最新的，无法还原。
+  FireAxe.Core -> <REPO_ROOT>\FireAxe.Core\bin\Release\net10.0\FireAxe.Core.dll
+  FireAxe.WinUI3 -> <REPO_ROOT>\FireAxe.WinUI3\bin\x64\Release\net10.0-windows10.0.26100.0\FireAxe.dll
+  FireAxe.Tests -> <REPO_ROOT>\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:28.33

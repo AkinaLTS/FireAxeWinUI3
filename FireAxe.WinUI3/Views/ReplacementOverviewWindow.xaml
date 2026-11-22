@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\ReplacementOverviewWindow.axaml. -->
+<host:HostedPage
+    xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.ReplacementOverviewWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FireAxe.Views"
+    xmlns:r="using:FireAxe.Resources"
+    xmlns:vm="using:FireAxe.ViewModels"
+    Title="{x:Bind r:Texts.ReplacementOverview, Mode=OneTime}">
+    <Grid Padding="{StaticResource NativePagePadding}" RowSpacing="16" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.ReplacementOverview, Mode=OneTime}" />
+    <Grid Grid.Row="1" Padding="0" RowSpacing="8">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid ColumnSpacing="8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <ComboBox MinWidth="170" ItemsSource="{x:Bind ViewModel.FilterOptions, Mode=OneTime}" SelectedItem="{x:Bind ViewModel.SelectedFilterOption, Mode=TwoWay}" />
+            <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap" Text="{x:Bind ViewModel.Summary, Mode=OneWay}" />
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                <TextBlock VerticalAlignment="Center" Text="{x:Bind r:Texts.RefreshingHint, Mode=OneTime}" Visibility="{x:Bind local:XBind.VisibleIf(ViewModel.IsRefreshing), Mode=OneWay}" />
+                <Button Content="{x:Bind r:Texts.Refresh, Mode=OneTime}" Command="{x:Bind ViewModel.RefreshCommand, Mode=OneTime}" />
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Groups, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ReplacementCategoryGroupViewModel">
+                            <StackPanel Spacing="4">
+                                <TextBlock Margin="0,10,0,2" FontSize="15" FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                <ItemsControl ItemsSource="{x:Bind Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ReplacementSlotItemViewModel">
+                                            <Expander HorizontalAlignment="Stretch" Margin="0,2">
+                                                <Expander.Header>
+                                                    <Grid ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                        <StackPanel><TextBlock Text="{x:Bind DisplayName}"/><TextBlock Opacity="0.65" FontSize="11" Text="{x:Bind SecondaryName}"/></StackPanel>
+                                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold" Text="{x:Bind StateText}" />
+                                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{x:Bind SummaryText}" />
+                                                    </Grid>
+                                                </Expander.Header>
+                                                <ItemsControl ItemsSource="{x:Bind Addons}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:ReplacementAddonItemViewModel">
+                                                            <Grid ColumnSpacing="8" Margin="0,3">
+                                                                <Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/><ColumnDefinition Width="160"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                                <TextBlock VerticalAlignment="Center" Text="{x:Bind RoleText}" />
+                                                                <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap" Text="{x:Bind Name}" />
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Opacity="0.7" Text="{x:Bind DetailsText}" />
+                                                                <Button Grid.Column="3" Content="{x:Bind r:Texts.ReplacementLocate, Mode=OneTime}" Command="{x:Bind LocateCommand, Mode=OneTime}" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Expander>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10" Text="{x:Bind r:Texts.Empty, Mode=OneTime}" Visibility="{x:Bind local:XBind.VisibleIf(ViewModel.HasNoVisibleSlots), Mode=OneWay}" />
+        </Grid>
+    </Grid>
+    </Grid>
+</host:HostedPage>

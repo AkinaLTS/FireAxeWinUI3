@@ -1,0 +1,164 @@
+# Source: original P7 workflow for FireAxeWinUI3; SDK/checkout/LFS conventions
+# informed by read-only ../FireAxe_Alt/.github/workflows/build-and-release.yml.
+# Branch and PR runs only build/test/upload artifacts. Releases require an explicit
+# v<Version> tag push or workflow_dispatch with create_release=true and an existing tag.
+name: Windows build and release
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a GitHub Release from an existing v<Version> tag'
+        type: boolean
+        required: true
+        default: false
+      release_tag:
+        description: 'Existing tag (required only when creating a release, e.g. v0.1.0)'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  build:
+    name: Build, test and zip (Windows x64)
+    runs-on: windows-2025
+    timeout-minutes: 90
+    outputs:
+      version: ${{ steps.publish.outputs.version }}
+      release_tag: ${{ steps.release_meta.outputs.tag }}
+      should_release: ${{ steps.release_meta.outputs.should_release }}
+    steps:
+      - name: Checkout requested source
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          # Manual releases build the existing tag, never an arbitrary branch head.
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.create_release && inputs.release_tag || github.ref }}
+          persist-credentials: false
+
+      - name: Validate explicit release request
+        id: release_meta
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          CREATE_RELEASE: ${{ inputs.create_release }}
+          INPUT_TAG: ${{ inputs.release_tag }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $shouldRelease = $env:REF_TYPE -eq 'tag' -and $env:EVENT_NAME -eq 'push'
+          $tag = if ($shouldRelease) { $env:REF_NAME } else { '' }
+          if ($env:EVENT_NAME -eq 'workflow_dispatch' -and $env:CREATE_RELEASE -eq 'true') {
+            if ([string]::IsNullOrWhiteSpace($env:INPUT_TAG)) { throw 'Manual release requires an existing release_tag.' }
+            $shouldRelease = $true
+            $tag = $env:INPUT_TAG
+          }
+          [xml] $props = Get-Content Directory.Build.props -Raw
+          $version = [string] $props.Project.PropertyGroup.Version
+          if ($shouldRelease) {
+            if ($tag -cne "v$version") { throw "Release tag must be v$version, got '$tag'." }
+            git show-ref --verify --quiet "refs/tags/$tag"
+            if ($LASTEXITCODE -ne 0) { throw 'Release tag must already exist; this workflow never creates tags.' }
+            $tagCommit = git rev-parse "refs/tags/$tag^{commit}"
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve release tag.' }
+            $headCommit = git rev-parse HEAD
+            if ($LASTEXITCODE -ne 0 -or $tagCommit -cne $headCommit) { throw 'Checked-out source does not match the release tag.' }
+          }
+          "should_release=$($shouldRelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build Release solution and run tests with a bounded timeout
+        shell: pwsh
+        timeout-minutes: 20
+        run: |
+          # Build first: `dotnet test --no-build` silently exits 0 with "no test is available"
+          # when the test assembly has not been produced yet, so the test step has to build.
+          # Publish-Windows.ps1 then reuses this build with -SkipTests.
+          ./scripts/Test-WindowsTests.ps1
+
+      - name: Publish and verify zip (tests already passed)
+        id: publish
+        shell: pwsh
+        run: |
+          $result = ./scripts/Publish-Windows.ps1 -ArtifactRoot artifacts/ci -SkipTests
+          "version=$($result.Version)" >> $env:GITHUB_OUTPUT
+          "zip_path=$($result.ZipPath)" >> $env:GITHUB_OUTPUT
+          "checksum_path=$($result.ChecksumPath)" >> $env:GITHUB_OUTPUT
+          "evidence_path=$($result.EvidenceDirectory)" >> $env:GITHUB_OUTPUT
+          "manifest_path=$($result.ManifestPath)" >> $env:GITHUB_OUTPUT
+          Get-Content $result.ChecksumPath
+          "Windows x64 self-contained zip: $([IO.Path]::GetFileName($result.ZipPath))" >> $env:GITHUB_STEP_SUMMARY
+          'Extract the complete zip before running FireAxe.exe. No app process was started by the build.' >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: FireAxe-${{ steps.publish.outputs.version }}-win-x64
+          path: |
+            ${{ steps.publish.outputs.zip_path }}
+            ${{ steps.publish.outputs.checksum_path }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-build-test-evidence
+          path: |
+            artifacts/tests/*
+            artifacts/ci/**/evidence/*
+            artifacts/ci/**/publish-manifest.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  release:
+    name: Create explicit tagged release
+    needs: build
+    if: needs.build.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: FireAxe-${{ needs.build.outputs.version }}-win-x64
+          path: dist
+
+      - name: Create release for existing tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check --strict ./*.sha256
+          # --verify-tag prevents implicit tag creation; no --clobber or edit path.
+          gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" \
+            --generate-notes ./*.zip ./*.sha256

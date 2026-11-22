@@ -1,0 +1,252 @@
+// Ported from FireAxe_Alt\FireAxe.GUI\Utils.cs
+// Dropped: GetRootWindow (Avalonia Visual), RegisterViewModelConnection (ReactiveUI WhenActivated).
+using Serilog;
+using System;
+using System.Diagnostics;
+using System.IO;
+using FireAxe.Resources;
+
+namespace FireAxe;
+
+internal static class Utils
+{
+    private static readonly string[] s_byteUnits = ["B", "KiB", "MiB", "GiB", "TiB"];
+
+    private static readonly object s_openDirectoryCustomProcessLock = new();
+    private static readonly object s_showFileCustomProcessLock = new();
+
+    public static string? OpenDirectoryCustomProcessFileName
+    {
+        get
+        {
+            lock (s_openDirectoryCustomProcessLock)
+            {
+                return field;
+            }
+        }
+        set
+        {
+            lock (s_openDirectoryCustomProcessLock)
+            {
+                field = value;
+            }
+        }
+    } = null;
+
+    public static string? OpenDirectoryCustomProcessArguments
+    {
+        get
+        {
+            lock (s_openDirectoryCustomProcessLock)
+            {
+                return field;
+            }
+        }
+        set
+        {
+            lock (s_openDirectoryCustomProcessLock)
+            {
+                field = value;
+            }
+        }
+    } = null;
+
+    public static string? ShowFileCustomProcessFileName
+    {
+        get
+        {
+            lock (s_showFileCustomProcessLock)
+            {
+                return field;
+            }
+        }
+        set
+        {
+            lock (s_showFileCustomProcessLock)
+            {
+                field = value;
+            }
+        }
+    } = null;
+
+    public static string? ShowFileCustomProcessArguments
+    {
+        get
+        {
+            lock (s_showFileCustomProcessLock)
+            {
+                return field;
+            }
+        }
+        set
+        {
+            lock (s_showFileCustomProcessLock)
+            {
+                field = value;
+            }
+        }
+    }
+
+    public static void GetReadableBytes(double bytes, out double value, out string unit)
+    {
+        value = bytes;
+        int i = 0;
+        while (value >= 1000 && i < s_byteUnits.Length)
+        {
+            value /= 1024;
+            i++;
+        }
+        unit = s_byteUnits[i];
+    }
+
+    public static string GetReadableBytes(double bytes)
+    {
+        GetReadableBytes(bytes, out double value, out string unit);
+        return value.ToString("F1") + unit;
+    }
+
+    public static void OpenWebsite(string url)
+    {
+        ArgumentNullException.ThrowIfNull(url);
+
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo(url)
+            {
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception occurred during Utils.OpenWebsite");
+        }
+    }
+
+    public static void OpenWorkshopPage(ulong publishedFileId)
+    {
+        OpenWebsite($"https://steamcommunity.com/sharedfiles/filedetails/?id={publishedFileId}");
+    }
+
+    /// <summary>
+    /// Runs the game from the given game directory with the given launch options.
+    /// Returns null on success, or an error message describing why it failed.
+    /// </summary>
+    public static string? RunGame(string gamePath, string launchOptions)
+    {
+        ArgumentNullException.ThrowIfNull(gamePath);
+        ArgumentNullException.ThrowIfNull(launchOptions);
+
+        var executablePath = SteamUtils.GetGameExecutablePath(gamePath);
+        if (!File.Exists(executablePath))
+        {
+            return string.Format(Texts.GameExecutableNotFoundMessage, executablePath);
+        }
+
+        try
+        {
+            var startInfo = new ProcessStartInfo(executablePath)
+            {
+                WorkingDirectory = gamePath,
+                UseShellExecute = false,
+            };
+            foreach (var argument in SteamUtils.ParseArgumentString(launchOptions))
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
+
+            using var process = Process.Start(startInfo);
+            if (process is null)
+            {
+                return Texts.CannotStartGameMessage;
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Exception occurred during {nameof(Utils)}.{nameof(RunGame)}.");
+            return ex.Message;
+        }
+    }
+
+    public static void ShowInFileExplorer(string path, bool openDir = false)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        if (Path.DirectorySeparatorChar != '/')
+        {
+            path = path.Replace('/', Path.DirectorySeparatorChar);
+        }
+        try
+        {
+            if (openDir && Directory.Exists(path)
+                && OpenDirectoryCustomProcessFileName is var openDirCustomProcessFileName && !string.IsNullOrEmpty(openDirCustomProcessFileName)
+                && OpenDirectoryCustomProcessArguments is var openDirCustomProcessArgs && !string.IsNullOrEmpty(openDirCustomProcessArgs))
+            {
+                using var process = Process.Start(openDirCustomProcessFileName, string.Format(openDirCustomProcessArgs, path));
+            }
+            else if (ShowFileCustomProcessFileName is var showFileCustomProcessFileName && !string.IsNullOrEmpty(showFileCustomProcessFileName)
+                && ShowFileCustomProcessArguments is var showFileCustomProcessArgs && !string.IsNullOrEmpty(showFileCustomProcessArgs))
+            {
+                using var process = Process.Start(showFileCustomProcessFileName, string.Format(showFileCustomProcessArgs, path));
+            }
+            else if (OperatingSystem.IsWindows())
+            {
+                string processArgs;
+                if (openDir && Directory.Exists(path))
+                {
+                    processArgs = $"\"{path}\"";
+                }
+                else
+                {
+                    processArgs = $"/select, \"{path}\"";
+                }
+                using var process = Process.Start("explorer.exe", processArgs);
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                string processArgs;
+                if (openDir && Directory.Exists(path))
+                {
+                    processArgs = $"\"{path}\"";
+                }
+                else
+                {
+                    processArgs = $"--select \"{path}\"";
+                }
+                using var process = Process.Start("nautilus", processArgs);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Exception occurred during {nameof(Utils)}.{nameof(ShowInFileExplorer)}.");
+        }
+    }
+
+    public static void DisposeAndSetNull<T>(ref T? disposable) where T : class, IDisposable
+    {
+        if (disposable != null)
+        {
+            disposable.Dispose();
+            disposable = null;
+        }
+    }
+
+    public static string FormatNoThrow(this string? str, params object?[] args)
+    {
+        if (str is null)
+        {
+            return "";
+        }
+
+        try
+        {
+            return string.Format(str, args);
+        }
+        catch (FormatException ex)
+        {
+            Log.Error(ex, "FormatException ocurred during Utils.FormatNoThrow.");
+        }
+
+        return str;
+    }
+}

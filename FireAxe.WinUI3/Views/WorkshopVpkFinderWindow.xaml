@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\WorkshopVpkFinderWindow.axaml. -->
+<host:HostedPage xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.WorkshopVpkFinderWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:FireAxe.Views" xmlns:r="using:FireAxe.Resources" Title="{x:Bind r:Texts.WorkshopVpkFinder, Mode=OneTime}">
+    <Grid Padding="{StaticResource NativePagePadding}" RowSpacing="16" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.WorkshopVpkFinder, Mode=OneTime}" />
+        <Grid Padding="0" RowSpacing="8" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <ListView ItemsSource="{x:Bind ViewModel.StagedItems, Mode=OneWay}" SelectionMode="None" IsItemClickEnabled="False" ItemContainerStyle="{StaticResource NativeListItemStyle}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnSpacing="8" Padding="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center" IsTextSelectionEnabled="True" Text="{Binding PublishedFileId}" />
+                                <Grid Grid.Column="1">
+                                    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Title}" Visibility="{Binding Title, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=notnull}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind r:Texts.HintGettingTitle, Mode=OneTime}" Visibility="{Binding Title, Converter={StaticResource NullToVisibilityConverter}}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind r:Texts.HintFailedGetTitle, Mode=OneTime}" Visibility="{Binding IsGetTitleFailed, Converter={StaticResource VisibleWhenTrueConverter}}" Foreground="{StaticResource FireAxeWarningBrush}" />
+                                </Grid>
+                                <Button Grid.Column="2" Margin="2" Content="{x:Bind r:Texts.OpenWebsite, Mode=OneTime}" Command="{Binding OpenWebsiteCommand}" />
+                                <Button Grid.Column="3" Margin="2" Content="{x:Bind r:Texts.Remove, Mode=OneTime}" Command="{Binding RemoveCommand}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10" Text="{x:Bind r:Texts.Empty, Mode=OneTime}" Visibility="{x:Bind local:XBind.VisibleIfEmpty(ViewModel.StagedItems.Count), Mode=OneWay}" />
+            </Grid>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="{x:Bind r:Texts.FindFromDirectory, Mode=OneTime}" Command="{x:Bind ViewModel.FindFromDirectoryCommand, Mode=OneTime}" />
+                <Button Content="{x:Bind r:Texts.Create, Mode=OneTime}" Command="{x:Bind ViewModel.CreateCommand, Mode=OneTime}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</host:HostedPage>

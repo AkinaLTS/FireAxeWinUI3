@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="8f1aaaa6-bda3-4dba-a735-d8357da7eafc" name="REDACTED_USER@REDACTED_HOST 2026-11-11 22:04:53" runUser="REDACTED_HOST\REDACTED_USER" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-11T22:04:53.7646765+08:00" queuing="2026-11-11T22:04:53.7646768+08:00" start="2026-11-11T22:04:51.7792203+08:00" finish="2026-11-11T22:04:53.7766026+08:00" />
+  <TestSettings name="default" id="f203fa34-e992-4732-98a8-3e0cc38cfcc9">
+    <Deployment runDeploymentRoot="REDACTED_USER_REDACTED_HOST_2026-11-11_22_04_53" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="182145a4-bd33-42b2-a7af-5cc715872574" testId="fe6e5e4c-7231-f42a-5286-8cad2e214b0a" testName="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 2, width: 2290, height: 1400)" computerName="REDACTED_HOST" duration="00:00:00.0000024" startTime="2026-11-11T22:04:52.6137294+08:00" endTime="2026-11-11T22:04:52.6138052+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="182145a4-bd33-42b2-a7af-5cc715872574" />
+    <UnitTestResult executionId="a59aa21e-09ca-4d85-bfec-654d683b35ce" testId="6dc461ba-f373-a0fa-fd47-942e721ad222" testName="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 1, width: 1145, height: 700)" computerName="REDACTED_HOST" duration="00:00:00.0004219" startTime="2026-11-11T22:04:52.6126295+08:00" endTime="2026-11-11T22:04:52.6127623+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a59aa21e-09ca-4d85-bfec-654d683b35ce" />
+    <UnitTestResult executionId="69cdec4f-5203-4d99-af94-a42d02af2b40" testId="882413b6-9f74-17a0-4e82-fef300471588" testName="FireAxe.Tests.P7RegressionTests.CorruptAndOversizedGeometry_StaysInsideWorkArea" computerName="REDACTED_HOST" duration="00:00:00.0001943" startTime="2026-11-11T22:04:53.6250437+08:00" endTime="2026-11-11T22:04:53.6252699+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="69cdec4f-5203-4d99-af94-a42d02af2b40" />
+    <UnitTestResult executionId="369efdcc-4484-4202-9597-40fd04f709cd" testId="67988cd0-8dfb-8105-77e1-7c20479a329e" testName="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 1.5, width: 1718, height: 1050)" computerName="REDACTED_HOST" duration="00:00:00.0000085" startTime="2026-11-11T22:04:52.6135085+08:00" endTime="2026-11-11T22:04:52.6135850+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="369efdcc-4484-4202-9597-40fd04f709cd" />
+    <UnitTestResult executionId="5c0856b3-aa03-45d4-bce2-9850df607766" testId="9ed43d42-9e92-596d-7455-77de05e7cb99" testName="FireAxe.Tests.P7RegressionTests.SymbolicLinkProbe_LeavesNoFilesAndPushUsesTemporaryGameOnly" computerName="REDACTED_HOST" duration="00:00:00.0554072" startTime="2026-11-11T22:04:53.5689892+08:00" endTime="2026-11-11T22:04:53.6244396+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5c0856b3-aa03-45d4-bce2-9850df607766">
+      <Output>
+        <StdOut>BCL symlink preflight and AddonRoot.Push succeeded in an isolated temporary game directory.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="69144a9f-b385-447d-a50d-ae1550fe925d" testId="97b71710-312d-8c80-dd88-595643be5433" testName="FireAxe.Tests.P7RegressionTests.TwoThousandNodes_SortSearchAndSaveReload" computerName="REDACTED_HOST" duration="00:00:00.9560552" startTime="2026-11-11T22:04:52.6150955+08:00" endTime="2026-11-11T22:04:53.5614775+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="69144a9f-b385-447d-a50d-ae1550fe925d">
+      <Output>
+        <StdOut>Create 2000 groups: 63 ms&#xD;
+Sort ascending + descending: 7 ms&#xD;
+Search including debounce: 527 ms&#xD;
+Save + reload 2000 groups: 331 ms (data path only; no UI rendering measured)</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3c88a295-c05b-4545-afd5-984849760b58" testId="d743d20c-d72a-977a-2a71-2a11526371bd" testName="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 1.25, width: 1431, height: 875)" computerName="REDACTED_HOST" duration="00:00:00.0170004" startTime="2026-11-11T22:04:52.5730953+08:00" endTime="2026-11-11T22:04:52.6010337+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3c88a295-c05b-4545-afd5-984849760b58" />
+    <UnitTestResult executionId="b89ba024-fc3d-4207-9e7d-92417f30dbd5" testId="c6ba0ce9-d576-04b6-f83c-c8d2cae46760" testName="FireAxe.Tests.P7RegressionTests.ProfileOverride_RequiresAbsolutePathAndNormalizesIt" computerName="REDACTED_HOST" duration="00:00:00.0054269" startTime="2026-11-11T22:04:53.5635064+08:00" endTime="2026-11-11T22:04:53.5688256+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b89ba024-fc3d-4207-9e7d-92417f30dbd5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.TwoThousandNodes_SortSearchAndSaveReload" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="97b71710-312d-8c80-dd88-595643be5433">
+      <Execution id="69144a9f-b385-447d-a50d-ae1550fe925d" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="TwoThousandNodes_SortSearchAndSaveReload" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 1.25, width: 1431, height: 875)" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="d743d20c-d72a-977a-2a71-2a11526371bd">
+      <Execution id="3c88a295-c05b-4545-afd5-984849760b58" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="ClientDips_ConvertToPhysicalPixels" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 2, width: 2290, height: 1400)" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="fe6e5e4c-7231-f42a-5286-8cad2e214b0a">
+      <Execution id="182145a4-bd33-42b2-a7af-5cc715872574" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="ClientDips_ConvertToPhysicalPixels" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 1, width: 1145, height: 700)" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="6dc461ba-f373-a0fa-fd47-942e721ad222">
+      <Execution id="a59aa21e-09ca-4d85-bfec-654d683b35ce" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="ClientDips_ConvertToPhysicalPixels" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.CorruptAndOversizedGeometry_StaysInsideWorkArea" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="882413b6-9f74-17a0-4e82-fef300471588">
+      <Execution id="69cdec4f-5203-4d99-af94-a42d02af2b40" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="CorruptAndOversizedGeometry_StaysInsideWorkArea" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.ProfileOverride_RequiresAbsolutePathAndNormalizesIt" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="c6ba0ce9-d576-04b6-f83c-c8d2cae46760">
+      <Execution id="b89ba024-fc3d-4207-9e7d-92417f30dbd5" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="ProfileOverride_RequiresAbsolutePathAndNormalizesIt" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.SymbolicLinkProbe_LeavesNoFilesAndPushUsesTemporaryGameOnly" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="9ed43d42-9e92-596d-7455-77de05e7cb99">
+      <Execution id="5c0856b3-aa03-45d4-bce2-9850df607766" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="SymbolicLinkProbe_LeavesNoFilesAndPushUsesTemporaryGameOnly" />
+    </UnitTest>
+    <UnitTest name="FireAxe.Tests.P7RegressionTests.ClientDips_ConvertToPhysicalPixels(scale: 1.5, width: 1718, height: 1050)" storage="REDACTED_REPO_ROOT\fireaxe.tests\bin\x64\release\net10.0-windows10.0.26100.0\win-x64\fireaxe.tests.dll" id="67988cd0-8dfb-8105-77e1-7c20479a329e">
+      <Execution id="369efdcc-4484-4202-9597-40fd04f709cd" />
+      <TestMethod codeBase="REDACTED_REPO_ROOT\FireAxe.Tests\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\FireAxe.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="FireAxe.Tests.P7RegressionTests" name="ClientDips_ConvertToPhysicalPixels" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="fe6e5e4c-7231-f42a-5286-8cad2e214b0a" executionId="182145a4-bd33-42b2-a7af-5cc715872574" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6dc461ba-f373-a0fa-fd47-942e721ad222" executionId="a59aa21e-09ca-4d85-bfec-654d683b35ce" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="882413b6-9f74-17a0-4e82-fef300471588" executionId="69cdec4f-5203-4d99-af94-a42d02af2b40" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="67988cd0-8dfb-8105-77e1-7c20479a329e" executionId="369efdcc-4484-4202-9597-40fd04f709cd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9ed43d42-9e92-596d-7455-77de05e7cb99" executionId="5c0856b3-aa03-45d4-bce2-9850df607766" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="97b71710-312d-8c80-dd88-595643be5433" executionId="69144a9f-b385-447d-a50d-ae1550fe925d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d743d20c-d72a-977a-2a71-2a11526371bd" executionId="3c88a295-c05b-4545-afd5-984849760b58" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c6ba0ce9-d576-04b6-f83c-c8d2cae46760" executionId="b89ba024-fc3d-4207-9e7d-92417f30dbd5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="列表中未列出的结果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有已加载的结果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="8" passed="8" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.13)&#xD;
+[xUnit.net 00:00:00.10]   Discovering: FireAxe.Tests&#xD;
+[xUnit.net 00:00:00.16]   Discovered:  FireAxe.Tests&#xD;
+[xUnit.net 00:00:00.20]   Starting:    FireAxe.Tests&#xD;
+[xUnit.net 00:00:01.28]   Finished:    FireAxe.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

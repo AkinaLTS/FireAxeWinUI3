@@ -1,0 +1,57 @@
+Source: original P7 distribution subagent validation record, 2026-11-11 (Asia/Shanghai).
+Scope: scripts/ and .github/workflows/ only; project properties unchanged by this subagent.
+
+Implemented:
+- scripts/Publish-Windows.ps1: PowerShell 7, version from Directory.Build.props;
+  optional ExpectedVersion guard, unique output per run, build + tests by default;
+  .NET and Windows App SDK built-in self-contained publish; no trimming/single-file;
+  package license/notice collection using NuGet metadata and SDK NuGet.Versioning;
+  dependency presence, runtimeconfig, PE imports, zip contents, SHA256 and manifest.
+- scripts/Test-PublishDependencies.ps1: BCL PEReader static import table inspection;
+  distinguishes app-local, Windows API sets, host System32, and unresolved imports.
+- .github/workflows/build-and-release.yml: branch/PR/manual build+test+zip artifacts;
+  release job only explicit v<Version> tag push or manual create_release=true with
+  existing matching tag; manual release checks out tag, verifies commit; read-only
+  default token, isolated release contents:write; gh release --verify-tag, no overwrite.
+
+Commands and observations:
+1. dotnet --info: SDK 10.0.402, MSBuild 18.9.15, Windows 10.0.26340 x64.
+2. dotnet publish FireAxe.WinUI3/FireAxe.WinUI3.csproj -c Release -r win-x64
+   --self-contained true -p:WindowsAppSDKSelfContained=true -p:PublishSingleFile=false
+   -p:PublishTrimmed=false -p:DebugType=None -o artifacts/p7-probe-20261111-2135
+   Result: success. The .NET and SDK runtime files are present beside FireAxe.exe.
+3. ./scripts/Publish-Windows.ps1 -ArtifactRoot artifacts/p7-validation
+   Result: build success, 0 warnings/errors, tests 10/10 passed, publish success.
+   Initial license collection hit '[10.0.13, 10.0.13]' package range handling;
+   corrected to SDK NuGet.Versioning.VersionRange.Parse (no bespoke parser).
+   Logs: distribution-initial-*.txt and distribution-initial-tests.trx.
+   Output: artifacts/p7-validation/FireAxe-0.1.0-win-x64-20261111-133738-96cf4e7f/.
+4. ./scripts/Publish-Windows.ps1 -ArtifactRoot artifacts/p7-validation -SkipTests
+   Result: child session encountered Access denied reading
+   <REPO_ROOT>\FireAxe.WinUI3\obj\x64\Release\net10.0-windows10.0.26100.0\win-x64\apphost.exe
+   during publish (MSB3021). PEReader also could not open
+   <REPO_ROOT>\artifacts\p7-probe-20261111-2135\FireAxe.exe.
+   No permission mutation or alternate-path retry was performed.
+   Parent agent reports same apphost File.OpenRead succeeds in parent session.
+   Failure log: distribution-subagent-access-denied.txt.
+5. Executed current script's license collection block independently against existing
+   restored package metadata into artifacts/p7-license-check-20261111-2142/.
+   Result: success, 43 generated files including project LICENSE.txt, THIRD-PARTY-NOTICES.txt,
+   WindowsAppSDK.Runtime/WinUI license + notice and Microsoft.NETCore.App.Runtime.win-x64 license.
+   Inventory preserved as distribution-third-party-notices.txt.
+6. PowerShell parser accepted both scripts; PyYAML 6.0.3 accepted workflow YAML;
+   git diff --check successful. actionlint not installed. No hosted workflow run.
+7. ASCII scans of all initial publish DLL files found no vcruntime/msvcp/concrt/vcomp
+   DLL names. This is supplementary evidence, not PE import validation or proof of
+   clean-machine runtime independence. PEReader compiles, but full invocation stopped
+   at the child-session exe read restriction.
+
+Limits and handoff:
+- No finished zip/checksum/manifest was produced by the child session; parent will run
+  the final script after its app changes settle and perform isolated launch verification.
+- No application process started by this subagent; no user profile data accessed.
+- Static imports cannot detect dynamic loads, COM, delay-load, WebView2 installations,
+  or missing OS features. A clean supported Windows VM remains necessary for a
+  complete no-preinstalled-runtime claim; extract the entire zip before running exe.
+- No push, GitHub publish, tag creation, commit, or existing-file deletion occurred.
+- Existing disabled workflow retained; README/CHANGELOG/phase notes untouched.

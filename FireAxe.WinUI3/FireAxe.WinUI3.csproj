@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>FireAxe</RootNamespace>
+    <AssemblyName>FireAxe</AssemblyName>
+    <ApplicationIcon>Assets\AppLogo.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <!-- 固定 Platform：否则直接 build 该 csproj 时 Platform 落到 AnyCPU，产物写到 bin\Debug，
+         而 build 解决方案时写到 bin\x64\Debug —— 两个输出树会让"跑的是哪份二进制"变成陷阱 -->
+    <Platform>x64</Platform>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <!-- P7: zip 分发，scripts/Publish-Windows.ps1 同时携带 .NET 与 Windows App SDK；MSIX 可选 -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 非打包模式需要自举 Windows App Runtime（本机已装 2.6.5）。
+         R28: 禁用自动生成的 [ModuleInitializer] 引导器，避免 FireAxe.Tests 在无 Runtime 的 CI runner 上
+         加载 FireAxe.dll 时触发 OnNoMatch_ShowUI 模态对话框永久挂起。非自包含运行时改由 Program.Main 显式引导；
+         Publish-Windows.ps1 传 WindowsAppSDKSelfContained=true 时沿用官方 UndockedRegFreeWinRT 自包含初始化。 -->
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+    <WindowsAppSdkIncludeVersionInfo Condition="'$(WindowsAppSDKSelfContained)' != 'true'">true</WindowsAppSdkIncludeVersionInfo>
+    <DefineConstants Condition="'$(WindowsAppSDKSelfContained)' != 'true'">$(DefineConstants);FIREAXE_MANUAL_WASDK_BOOTSTRAP</DefineConstants>
+    <!-- P2：用自己的 Program.Main 取代 App.g.i.cs 生成的入口，让 Serilog 与单实例检查早于 XAML 初始化 -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 窗口图标：非打包模式下 AppWindow.SetIcon 需要一个真实文件路径 -->
+    <None Update="Assets\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- VPK 冲突检查用的忽略清单（与 Alt 的 <None Include="ExportedAssets\**" .../> 等价） -->
+    <None Update="ExportedAssets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.9457" />
+    <!-- 8.4.2：8.4.0 的源生成器不支持 plain `latest` 下的 partial property（CS9248），
+         WinUI 3 又必须用 partial property（否则 MVVMTK0045）。见 docs/spike-notes.md -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <!-- Serilog 本体由 FireAxe.Core 引入；sink 属宿主层职责（与 Alt 的 GUI 工程一致） -->
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FireAxe.Core\FireAxe.Core.csproj" />
+  </ItemGroup>
+
+  <!-- MSIX BuildTools 1.7.251221100's MrtCore targets (EnableMsixTooling=false)
+       generate the PRI and copy XBF to build output, but omit the .NET publish items.
+       Use the SDK's generated paths/target metadata instead of scanning bin or rebuilding XAML. -->
+  <Target Name="PublishUnpackagedXamlResources" AfterTargets="ComputeResolvedFilesToPublishList"
+          DependsOnTargets="_GenerateProjectPriFile;AddProcessedXamlFilesToCopyLocal"
+          Condition="'$(WindowsPackageType)' == 'None'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(ProjectPriFullPath)" RelativePath="$(ProjectPriFileName)"
+                             CopyToPublishDirectory="PreserveNewest" />
+      <ResolvedFileToPublish Include="@(_ProcessedXamlFilesToCopyLocalWithTargetPath)"
+                             RelativePath="%(_ProcessedXamlFilesToCopyLocalWithTargetPath.TargetPath)"
+                             CopyToPublishDirectory="PreserveNewest"
+                             Condition="'$(_SupportXbfAsEmbedFileResources)' != 'true'" />
+    </ItemGroup>
+  </Target>
+</Project>

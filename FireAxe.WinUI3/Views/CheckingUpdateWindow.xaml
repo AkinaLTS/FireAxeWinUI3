@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ported from FireAxe_Alt\FireAxe.GUI\Views\CheckingUpdateWindow.axaml -->
+<host:HostedPage
+    xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.CheckingUpdateWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:r="using:FireAxe.Resources"
+    mc:Ignorable="d"
+    Title="{x:Bind r:Texts.Update, Mode=OneTime}">
+
+    <Grid Margin="50">
+        <TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Text="{x:Bind r:Texts.CheckingForUpdatesMessage, Mode=OneTime}" />
+    </Grid>
+</host:HostedPage>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<host:HostedPage xmlns:host="using:FireAxe.Views" x:Class="FireAxe.Views.NewWorkshopCollectionWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:r="using:FireAxe.Resources" xmlns:local="using:FireAxe.Views"
+    Title="{x:Bind r:Texts.WorkshopCollection, Mode=OneTime}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel Padding="{StaticResource NativePagePadding}" Spacing="16">
+            <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.WorkshopCollection, Mode=OneTime}" />
+            <Border Style="{StaticResource NativeCardStyle}">
+                <StackPanel Spacing="16">
+                    <TextBox Header="{x:Bind r:Texts.CollectionId, Mode=OneTime}" Text="{x:Bind ViewModel.CollectionId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ToggleSwitch Header="{x:Bind r:Texts.IncludeLinkedCollections, Mode=OneTime}" IsOn="{x:Bind ViewModel.IncludeLinkedCollections, Mode=TwoWay}" />
+                </StackPanel>
+            </Border>
+            <ProgressBar IsIndeterminate="True" Visibility="{x:Bind local:XBind.VisibleIf(ViewModel.IsCreating), Mode=OneWay}" />
+            <TextBlock Text="{x:Bind r:Texts.Creating, Mode=OneTime}" Visibility="{x:Bind local:XBind.VisibleIf(ViewModel.IsCreating), Mode=OneWay}" />
+            <Button HorizontalAlignment="Right" Style="{StaticResource AccentButtonStyle}" Content="{x:Bind r:Texts.Create, Mode=OneTime}" Command="{x:Bind ViewModel.CreateCommand, Mode=OneTime}" />
+        </StackPanel>
+    </ScrollViewer>
+</host:HostedPage>
