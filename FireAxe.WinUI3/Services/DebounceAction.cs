@@ -52,6 +52,21 @@ internal sealed class DebounceAction : IDisposable
         _ = RunAsync(action, cts);
     }
 
+    /// <summary>Cancels any pending run without disposing the debouncer, so future <see cref="Run"/> calls still work.</summary>
+    public void Cancel()
+    {
+        lock (_lock)
+        {
+            var cts = _cts;
+            _cts = null;
+            if (cts is not null)
+            {
+                cts.Cancel();
+                cts.Dispose();
+            }
+        }
+    }
+
     public void Dispose()
     {
         lock (_lock)
@@ -81,6 +96,20 @@ internal sealed class DebounceAction : IDisposable
         catch (OperationCanceledException)
         {
             return;
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            if (_disposed || !ReferenceEquals(_cts, cts))
+            {
+                return;
+            }
+            _cts = null;
+            cts.Dispose();
         }
 
         if (_dispatcher is { } dispatcher)

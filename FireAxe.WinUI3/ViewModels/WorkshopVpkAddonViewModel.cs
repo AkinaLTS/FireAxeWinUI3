@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using FireAxe.Resources;
 using FireAxe.Services;
+using Serilog;
 using System;
 using System.Linq;
 using System.Threading;
@@ -130,7 +131,11 @@ public partial class WorkshopVpkAddonViewModel : VpkAddonViewModel
 
         var addon = (WorkshopVpkAddon)addon0;
 
-        subscriptions.Add(addon, nameof(WorkshopVpkAddon.PublishedFileId), () => OnPropertyChanged(nameof(ItemId)));
+        subscriptions.Add(addon, nameof(WorkshopVpkAddon.PublishedFileId), () =>
+        {
+            OnPropertyChanged(nameof(ItemId));
+            OnPropertyChanged(nameof(DisplayItemId));
+        });
 
         void UpdateDownloadItemViewModel()
         {
@@ -147,6 +152,7 @@ public partial class WorkshopVpkAddonViewModel : VpkAddonViewModel
         base.OnNullAddon();
 
         OnPropertyChanged(nameof(ItemId));
+        OnPropertyChanged(nameof(DisplayItemId));
         DownloadItemViewModel = null;
     }
 
@@ -178,6 +184,10 @@ public partial class WorkshopVpkAddonViewModel : VpkAddonViewModel
             catch (OperationCanceledException)
             {
                 return;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception occurred during WorkshopVpkAddonViewModel.RefreshPublishedFileDetails.");
             }
         }
 

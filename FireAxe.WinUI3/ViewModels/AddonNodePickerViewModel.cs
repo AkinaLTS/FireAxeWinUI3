@@ -82,6 +82,8 @@ public partial class AddonNodePickerViewModel : ViewModelBase, IViewModelLifecyc
         {
             return;
         }
+
+        ExplorerViewModel.Activate();
     }
 
     /// <summary>
@@ -96,6 +98,7 @@ public partial class AddonNodePickerViewModel : ViewModelBase, IViewModelLifecyc
         }
         _isActive = false;
 
+        ExplorerViewModel.Deactivate();
         Utils.DisposeAndSetNull(ref _invalidHandler);
     }
 

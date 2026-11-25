@@ -249,7 +249,9 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
             {
                 _addonRoot!.NewDownloadItem -= OnAddonRootNewDownloadItem;
                 _addonRoot.Pushed -= OnAddonRootPushed;
-                _addonRoot.DisposeAsync().AsTask(); // TODO: await (unchanged from the Avalonia version)
+                _ = _addonRoot.DisposeAsync().AsTask().ContinueWith(
+                    static t => Log.Error(t.Exception, "Exception occurred during AddonRoot.DisposeAsync."),
+                    TaskContinuationOptions.OnlyOnFaulted);
                 _addonRoot = null;
             }
         }
@@ -274,12 +276,14 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
         get => _addonNodeExplorerViewModel;
         private set
         {
+            var oldViewModel = _addonNodeExplorerViewModel;
             if (!SetProperty(ref _addonNodeExplorerViewModel, value))
             {
                 return;
             }
 
             ObserveExplorerViewModel(value);
+            oldViewModel?.Dispose();
             SyncExplorerSettingsFromAppSettings(value);
             UpdateHasSelection();
         }
@@ -370,7 +374,14 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
             _appSettings.Save();
             if (Directory.Exists(lastOpenDir))
             {
-                await OpenDirectoryAsync(lastOpenDir);
+                try
+                {
+                    await OpenDirectoryAsync(lastOpenDir);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception occurred during opening LastOpenDirectory: {DirectoryPath}", lastOpenDir);
+                }
             }
         }
     }
@@ -522,24 +533,36 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
         _isCheckingUpdate = true;
         var activity = new object();
         _checkUpdateActivity = activity;
-        _checkUpdateCts = new();
+        var cts = new CancellationTokenSource();
+        _checkUpdateCts = cts;
         string? latestVersion = null;
         try
         {
-            latestVersion = await AppGlobal.GetLatestVersionAsync(_appSettings.UpdateCheckRepository, _httpClient, _checkUpdateCts.Token);
+            latestVersion = await AppGlobal.GetLatestVersionAsync(_appSettings.UpdateCheckRepository, _httpClient, cts.Token);
         }
         catch (OperationCanceledException)
         {
         }
-        if (activity == _checkUpdateActivity)
+        catch (Exception ex)
         {
-            _isCheckingUpdate = false;
-            _checkUpdateActivity = null;
-            _checkUpdateCts.Dispose();
-            _checkUpdateCts = null;
+            Log.Error(ex, "Exception occurred during checking update.");
         }
 
+        if (activity != _checkUpdateActivity)
+        {
+            return;
+        }
+
+        _isCheckingUpdate = false;
+        _checkUpdateActivity = null;
+        _checkUpdateCts = null;
+        cts.Dispose();
+
         CloseCheckingUpdateWindow?.Invoke();
+        if (_disposed)
+        {
+            return;
+        }
         if (silenced)
         {
             if (latestVersion == null)
@@ -556,32 +579,39 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
             }
         }
 
-        if (latestVersion == null)
+        try
         {
-            await _dialogService.ShowInfoAsync(Texts.FailedToGetLatestVersion, Texts.Error);
-        }
-        else if (latestVersion == AppGlobal.VersionString)
-        {
-            await _dialogService.ShowInfoAsync(Texts.CurrentVersionLatestMessage, Texts.Update);
-        }
-        else
-        {
-            var textGoToDownload = Texts.GoToDownload;
-            var textIgnore = Texts.Ignore;
-            int choice = await _dialogService.ShowChoiceAsync(
-                Texts.NewVersionAvailable.FormatNoThrow(latestVersion),
-                Texts.Update,
-                textGoToDownload,
-                textIgnore);
+            if (latestVersion == null)
+            {
+                await _dialogService.ShowInfoAsync(Texts.FailedToGetLatestVersion, Texts.Error);
+            }
+            else if (latestVersion == AppGlobal.VersionString)
+            {
+                await _dialogService.ShowInfoAsync(Texts.CurrentVersionLatestMessage, Texts.Update);
+            }
+            else
+            {
+                var textGoToDownload = Texts.GoToDownload;
+                var textIgnore = Texts.Ignore;
+                int choice = await _dialogService.ShowChoiceAsync(
+                    Texts.NewVersionAvailable.FormatNoThrow(latestVersion),
+                    Texts.Update,
+                    textGoToDownload,
+                    textIgnore);
 
-            if (choice == 0)
-            {
-                Utils.OpenWebsite(AppGlobal.GetGithubReleasesUrl(_appSettings.UpdateCheckRepository));
+                if (choice == 0)
+                {
+                    Utils.OpenWebsite(AppGlobal.GetGithubReleasesUrl(_appSettings.UpdateCheckRepository));
+                }
+                else if (choice == 1)
+                {
+                    _appSettings.SuppressedUpdateRequestVersion = latestVersion;
+                }
             }
-            else if (choice == 1)
-            {
-                _appSettings.SuppressedUpdateRequestVersion = latestVersion;
-            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception occurred during showing update dialog.");
         }
     }
 
@@ -594,14 +624,16 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
 
         _isCheckingUpdate = false;
         _checkUpdateActivity = null;
-        _checkUpdateCts!.Cancel();
-        _checkUpdateCts!.Dispose();
+        var cts = _checkUpdateCts;
         _checkUpdateCts = null;
+        cts?.Cancel();
+        cts?.Dispose();
+        CloseCheckingUpdateWindow?.Invoke();
     }
 
     public async void CheckClipboard()
     {
-        if (_isCheckingClipboard)
+        if (!_inited || _disposed || _isCheckingClipboard)
         {
             return;
         }
@@ -677,9 +709,18 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
             return null;
         }
 
-        await Check();
-
-        _isCheckingClipboard = false;
+        try
+        {
+            await Check();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception occurred during CheckClipboard.");
+        }
+        finally
+        {
+            _isCheckingClipboard = false;
+        }
     }
 
     public void AutoRedownload()
@@ -728,6 +769,7 @@ public sealed class MainWindowViewModel : ViewModelBase, ISaveable, IDisposable
         ObserveExplorerViewModel(null);
 
         AddonRoot = null;
+        CancelCheckUpdate();
 
         _checkClipboardTimer?.Dispose();
         _autoRedownloadTimer?.Dispose();

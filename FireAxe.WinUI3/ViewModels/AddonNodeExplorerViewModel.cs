@@ -654,6 +654,10 @@ public class AddonNodeExplorerViewModel : ViewModelBase, IViewModelLifecycle, IV
 
         Utils.DisposeAndSetNull(ref _invalidHandler);
 
+        _tagFilterDebounce.Cancel();
+        _searchOptionsDebounce.Cancel();
+        _searchTextDebounce.Cancel();
+
         CurrentNodes = EmptyNodes;
         CancelSearch();
     }

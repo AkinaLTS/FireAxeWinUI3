@@ -10,7 +10,7 @@
         <TextBlock Style="{StaticResource NativePageTitleTextStyle}" Text="{x:Bind r:Texts.Select, Mode=OneTime}" />
     <Grid Grid.Row="1" Padding="0" RowSpacing="8">
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <local:AddonNodeExplorerView xmlns:local="using:FireAxe.Views" x:Name="explorerView" IsAddonNodeViewEnabled="False" IsSingleSelectionEnabled="{x:Bind IsSingleSelectionEnabled, Mode=OneTime}" />
+        <local:AddonNodeExplorerView xmlns:local="using:FireAxe.Views" x:Name="explorerView" IsAddonNodeViewEnabled="False" IsWorkspaceActive="False" IsSingleSelectionEnabled="{x:Bind IsSingleSelectionEnabled, Mode=OneTime}" />
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="{x:Bind r:Texts.Cancel, Mode=OneTime}" Click="OnCancelClick" />
             <Button Style="{StaticResource AccentButtonStyle}" Content="{x:Bind r:Texts.Confirm, Mode=OneTime}" Command="{x:Bind ViewModel.ConfirmCommand, Mode=OneTime}" />

@@ -631,7 +631,7 @@ public sealed partial class AddonNodeExplorerView : UserControl
 
                 // Alt: addonNodeView.IsEffectivelyVisible -- the detail pane only has a name to edit when a
                 // single node is selected.
-                if (viewModel.SelectedNode is not null && addonNodeView.NameEditingControl is { } nameEditingControl)
+                if (IsAddonNodeViewEnabled && viewModel.SelectedNode is not null && addonNodeView.NameEditingControl is { } nameEditingControl)
                 {
                     _compactDetailsOpen = IsCompactLayout;
                     ApplyAddonNodeViewEnabled(IsAddonNodeViewEnabled);

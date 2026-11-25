@@ -217,7 +217,7 @@ public partial class AddonNodeSimpleViewModel : ViewModelBase, IViewModelLifecyc
         _addonSubscriptions?.Dispose();
         _addonSubscriptions = null;
 
-        _customImagePathDebounce.Dispose();
+        _customImagePathDebounce.Cancel();
         CancelRefreshTasks();
 
         Image = null;
@@ -370,6 +370,11 @@ public partial class AddonNodeSimpleViewModel : ViewModelBase, IViewModelLifecyc
             }
             catch (OperationCanceledException)
             {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception occurred during getting image for {AddonName}.", addon.Name);
                 return;
             }
 

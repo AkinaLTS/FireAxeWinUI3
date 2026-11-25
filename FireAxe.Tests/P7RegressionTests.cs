@@ -251,4 +251,90 @@ public sealed class P7RegressionTests(ITestOutputHelper output)
         Assert.Null(appAssembly.GetType("Microsoft.Windows.ApplicationModel.WindowsAppRuntime.Common.AutoInitialize"));
         Assert.Null(appAssembly.GetType("Microsoft.Windows.ApplicationModel.DynamicDependency.BootstrapCS.AutoInitialize"));
     }
+
+    [Fact]
+    public void AddonNameAutoSetJobViewModel_TargetNameChange_NotifiesApplyCommandCanExecute()
+    {
+        using var directory = new TempDirectory();
+        var root = new AddonRoot { DirectoryPath = directory.Path };
+        root.LoadFile();
+        var group = AddonNode.Create<AddonGroup>(root);
+
+        using var jobVm = new AddonNameAutoSetJobViewModel(group, null);
+        Assert.False(jobVm.IsApplied);
+        Assert.False(jobVm.ApplyCommand.CanExecute(null));
+
+        int canExecuteChangedCount = 0;
+        jobVm.ApplyCommand.CanExecuteChanged += (_, _) => canExecuteChangedCount++;
+
+        jobVm.TargetName = "SuggestedGroupName";
+
+        Assert.True(canExecuteChangedCount > 0);
+        Assert.True(jobVm.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void WorkshopVpkAddonViewModel_PublishedFileIdChange_NotifiesDisplayItemId()
+    {
+        using var directory = new TempDirectory();
+        var root = new AddonRoot { DirectoryPath = directory.Path, TaskScheduler = TaskScheduler.Default };
+        using var blockAutoCheck = root.BlockAutoCheck();
+        root.LoadFile();
+        var addon = AddonNode.Create<WorkshopVpkAddon>(root);
+
+        var vm = new WorkshopVpkAddonViewModel(addon);
+        vm.Activate();
+        try
+        {
+            var changedProperties = new List<string?>();
+            vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName);
+
+            addon.PublishedFileId = 123456789UL;
+
+            Assert.Contains(nameof(WorkshopVpkAddonViewModel.ItemId), changedProperties);
+            Assert.Contains(nameof(WorkshopVpkAddonViewModel.DisplayItemId), changedProperties);
+            Assert.Equal("123456789", vm.DisplayItemId);
+        }
+        finally
+        {
+            vm.Deactivate();
+        }
+    }
+
+    [Fact]
+    public async Task AddonNodeSimpleViewModel_Reactivation_KeepsCustomImagePathDebounceWorking()
+    {
+        using var directory = new TempDirectory();
+        var root = new AddonRoot { DirectoryPath = directory.Path, TaskScheduler = TaskScheduler.Default };
+        using var blockAutoCheck = root.BlockAutoCheck();
+        root.LoadFile();
+        var group = AddonNode.Create<AddonGroup>(root);
+
+        int refreshCount = 0;
+        var vm = new CountingAddonNodeSimpleViewModel(group, () => Interlocked.Increment(ref refreshCount));
+        vm.Activate();
+        vm.Deactivate();
+        vm.Activate();
+
+        int before = Volatile.Read(ref refreshCount);
+        group.CustomImagePath = "preview.png";
+
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (DateTime.UtcNow < deadline && Volatile.Read(ref refreshCount) <= before)
+        {
+            await Task.Delay(25);
+        }
+
+        Assert.True(Volatile.Read(ref refreshCount) > before);
+        vm.Deactivate();
+    }
+
+    private sealed class CountingAddonNodeSimpleViewModel(AddonNode addon, Action onRefresh) : AddonNodeSimpleViewModel(addon)
+    {
+        protected override void OnRefresh(CancellationToken cancellationToken)
+        {
+            onRefresh();
+            base.OnRefresh(cancellationToken);
+        }
+    }
 }

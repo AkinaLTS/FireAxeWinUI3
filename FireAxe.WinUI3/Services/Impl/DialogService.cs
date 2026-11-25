@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using FireAxe.Resources;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Serilog;
 
 namespace FireAxe.Services;
 
@@ -117,6 +118,12 @@ public sealed class DialogService : IDialogService
         ArgumentOutOfRangeException.ThrowIfLessThan(buttonTexts.Length, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(buttonTexts.Length, 3);
 
+        if (TryGetXamlRoot() is null)
+        {
+            Log.Warning("Skipped choice ContentDialog '{Title}' because no active window XamlRoot is available.", title);
+            return -1;
+        }
+
         var result = await ShowCoreAsync(
             title ?? "",
             primaryButtonText: buttonTexts[0],
@@ -177,9 +184,15 @@ public sealed class DialogService : IDialogService
         await _gate.WaitAsync();
         try
         {
+            if (TryGetXamlRoot() is not { } xamlRoot)
+            {
+                Log.Warning("Skipped ContentDialog '{Title}' because no active window XamlRoot is available.", title);
+                return ContentDialogResult.None;
+            }
+
             var dialog = new ContentDialog
             {
-                XamlRoot = GetXamlRoot(),
+                XamlRoot = xamlRoot,
                 Title = title,
                 Content = content is string text ? WrapText(text) : content,
                 PrimaryButtonText = primaryButtonText,
@@ -226,13 +239,8 @@ public sealed class DialogService : IDialogService
 
     private const double MaxMessageHeight = 320;
 
-    private XamlRoot GetXamlRoot()
+    private XamlRoot? TryGetXamlRoot()
     {
-        if (_activeWindowProvider.ActiveWindow?.Content?.XamlRoot is { } xamlRoot)
-        {
-            return xamlRoot;
-        }
-
-        throw new InvalidOperationException("There is no active window to attach the dialog to.");
+        return _activeWindowProvider.ActiveWindow?.Content?.XamlRoot;
     }
 }

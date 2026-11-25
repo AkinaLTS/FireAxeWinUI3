@@ -11,6 +11,7 @@
 //     (the subscription bundle exposed by the ported AddonNodeSimpleViewModel)
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using System;
 using System.ComponentModel;
 using System.Threading;
@@ -51,6 +52,7 @@ public sealed partial class AddonNameAutoSetJobViewModel : AddonNodeSimpleViewMo
     partial void OnTargetNameChanged(string? value)
     {
         IsApplied = false;
+        NotifyApplyCanExecuteChanged();
     }
 
     [ObservableProperty]
@@ -204,6 +206,12 @@ public sealed partial class AddonNameAutoSetJobViewModel : AddonNodeSimpleViewMo
         }
         catch (OperationCanceledException)
         {
+            return;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception occurred during AddonNameAutoSetJobViewModel.DoJob.");
+            IsFailed = true;
             return;
         }
         finally

@@ -36,6 +36,8 @@ public sealed partial class MainWindow : Window
 
         Title = XBind.WindowTitle(viewModel.TitleExtraInfo);
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        viewModel.ShowCheckingUpdateWindow += OnShowCheckingUpdateWindow;
+        viewModel.CloseCheckingUpdateWindow += OnCloseCheckingUpdateWindow;
 
         RootGrid.Loaded += OnRootGridLoaded;
         RootGrid.AddHandler(UIElement.PointerReleasedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnNavigationPointerReleased), true);
@@ -330,7 +332,40 @@ public sealed partial class MainWindow : Window
         _isClosed = true;
         ClearHostedPages(force: true);
         ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        ViewModel.ShowCheckingUpdateWindow -= OnShowCheckingUpdateWindow;
+        ViewModel.CloseCheckingUpdateWindow -= OnCloseCheckingUpdateWindow;
         AppWindow.Changed -= OnAppWindowChanged;
+    }
+
+    private CheckingUpdateWindow? _checkingUpdateWindow;
+
+    private void OnShowCheckingUpdateWindow()
+    {
+        if (_isClosed)
+        {
+            return;
+        }
+        if (_checkingUpdateWindow is null || _checkingUpdateWindow.IsClosed)
+        {
+            var window = new CheckingUpdateWindow();
+            window.Closed += (_, _) =>
+            {
+                if (ReferenceEquals(_checkingUpdateWindow, window))
+                {
+                    _checkingUpdateWindow = null;
+                }
+                ViewModel.CancelCheckUpdate();
+            };
+            _checkingUpdateWindow = window;
+        }
+        ShowHostedPage(_checkingUpdateWindow);
+    }
+
+    private void OnCloseCheckingUpdateWindow()
+    {
+        var window = _checkingUpdateWindow;
+        _checkingUpdateWindow = null;
+        window?.Close();
     }
 
     private void ApplySavedGeometry()

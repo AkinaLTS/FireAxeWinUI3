@@ -52,7 +52,16 @@ internal sealed class AddonNodeListItemViewModelBinder
 
     private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
     {
-        if (args.NewValue is not AddonNode addon || ReferenceEquals(addon, _addon))
+        if (args.NewValue is not AddonNode addon)
+        {
+            _viewModel?.Deactivate();
+            _addon = null;
+            _viewModel = null;
+            _contentRoot.DataContext = null;
+            return;
+        }
+
+        if (ReferenceEquals(addon, _addon))
         {
             return;
         }
