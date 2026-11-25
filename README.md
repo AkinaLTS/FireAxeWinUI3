@@ -3,7 +3,7 @@
 
 **简体中文** | [English](README.en.md)
 
-FireAxe 是用于管理《Left 4 Dead 2》插件的开源图形工具。本仓库是 `FireAxe_Alt`（Avalonia 版，v0.7.6）的 **WinUI 3 重写**，目标是带上 Windows 原生的界面与交互，同时保留 Alt 的业务语义。
+FireAxe 是用于管理《Left 4 Dead 2》插件的开源图形工具。本仓库是 [FireAxe_Alt](https://github.com/AkinaLTS/FireAxe_Alt)（Avalonia 版，v0.7.6, 我的个人分支）的 **WinUI 3 重写**，目标是带上 Windows 原生的界面与交互，同时保留 Alt 的业务语义。
 
 技术栈：WinUI 3 / .NET 10 / Windows App SDK 2.6.5 / CommunityToolkit.Mvvm 8.4.2。
 
